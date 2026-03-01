@@ -29,8 +29,13 @@ A modern healthcare management web application designed to simplify patient serv
 - Reports and medical records
 - Reminder system
 - Symptom analysis module
-
 ## How to Run
+
+1. Download or clone the repository
+2. Open login.html in your browser
+
+## Project Highlights
+
 This project demonstrates frontend development skills in building responsive multi-page healthcare systems with user-centric UI design.
 
 ## Author
