@@ -31,9 +31,7 @@ A modern healthcare management web application designed to simplify patient serv
 - Symptom analysis module
 
 ## How to Run
-
-1. Download or clone the repository
-2. Open `index.html` or `login.html` in your browser
+This project demonstrates frontend development skills in building responsive multi-page healthcare systems with user-centric UI design.
 
 ## Author
 
