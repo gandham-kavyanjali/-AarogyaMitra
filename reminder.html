@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Reminders</title>
+<style>
+body { font-family: 'Poppins', sans-serif; margin:20px; background:#f5f5f5; }
+.container { max-width:600px; margin:auto; background:#fff; padding:20px; border-radius:12px; box-shadow:0 5px 15px rgba(0,0,0,0.2); }
+h2 { text-align:center; color:#17a2b8; }
+ul { list-style:none; padding:0; }
+li { padding:12px; margin:10px 0; background:#e9f7ff; border-radius:8px; display:flex; justify-content:space-between; align-items:center; }
+button { margin-left:10px; padding:5px 10px; border:none; border-radius:6px; cursor:pointer; }
+.edit-btn { background:#17a2b8; color:white; }
+.remove-btn { background:#dc3545; color:white; }
+form { display:grid; gap:10px; margin-bottom:15px; }
+input, select { padding:8px; border-radius:6px; border:1px solid #ccc; }
+.stop-btn { background:#ffc107; color:black; display:none; margin-top:10px; }
+</style>
+</head>
+<body>
+<div class="container">
+  <h2>Reminders</h2>
+  <form id="reminderForm">
+    <input type="text" id="reminderName" placeholder="Reminder Name" required>
+    <input type="date" id="reminderDate" required>
+    <input type="time" id="reminderTime" required>
+    <button type="submit">Add Reminder</button>
+  </form>
+  <ul id="reminderList"></ul>
+  <button id="stopAlarm" class="stop-btn">Stop Alarm</button>
+</div>
+
+<!-- 🔔 Alarm Sound -->
+<audio id="alarmSound" src="https://actions.google.com/sounds/v1/alarms/alarm_clock.ogg" preload="auto" loop></audio>
+
+<script>
+let reminders = JSON.parse(localStorage.getItem("reminders") || "[]");
+
+function renderReminders(){
+  const list = document.getElementById("reminderList");
+  list.innerHTML = "";
+  reminders.forEach((r, i)=>{
+    const li = document.createElement("li");
+    li.innerHTML = `
+      <span>${r.name} - ${r.date} ${r.time}</span>
+      <div>
+        <button class="edit-btn" onclick="editReminder(${i})">Edit</button>
+        <button class="remove-btn" onclick="removeReminder(${i})">Remove</button>
+      </div>
+    `;
+    list.appendChild(li);
+  });
+}
+
+document.getElementById("reminderForm").addEventListener("submit", (e)=>{
+  e.preventDefault();
+  const name = document.getElementById("reminderName").value;
+  const date = document.getElementById("reminderDate").value;
+  const time = document.getElementById("reminderTime").value;
+  reminders.push({name,date,time, triggered:false});
+  localStorage.setItem("reminders", JSON.stringify(reminders));
+  renderReminders();
+  e.target.reset();
+});
+
+function editReminder(index){
+  const r = reminders[index];
+  const newName = prompt("Name:", r.name) || r.name;
+  const newDate = prompt("Date:", r.date) || r.date;
+  const newTime = prompt("Time (HH:MM):", r.time) || r.time;
+  reminders[index] = {name:newName,date:newDate,time:newTime, triggered:false};
+  localStorage.setItem("reminders", JSON.stringify(reminders));
+  renderReminders();
+}
+
+function removeReminder(index){
+  if(confirm("Remove this reminder?")){
+    reminders.splice(index,1);
+    localStorage.setItem("reminders", JSON.stringify(reminders));
+    renderReminders();
+  }
+}
+
+// 🔔 Check reminders every second
+setInterval(()=>{
+  const now = new Date();
+  const today = now.toISOString().split("T")[0]; // YYYY-MM-DD
+  const currentTime = now.toTimeString().slice(0,5); // HH:MM
+
+  reminders.forEach((r,i)=>{
+    if(r.date === today && r.time === currentTime && !r.triggered){
+      const alarm = document.getElementById("alarmSound");
+      const stopBtn = document.getElementById("stopAlarm");
+      alarm.play();
+      stopBtn.style.display = "block"; // show stop button
+      alert("⏰ Reminder: " + r.name);
+      reminders[i].triggered = true;
+      localStorage.setItem("reminders", JSON.stringify(reminders));
+    }
+  });
+}, 1000);
+
+// 🔕 Stop Alarm Button
+document.getElementById("stopAlarm").addEventListener("click", ()=>{
+  const alarm = document.getElementById("alarmSound");
+  alarm.pause();
+  alarm.currentTime = 0;
+  document.getElementById("stopAlarm").style.display = "none";
+});
+
+// Initial render
+renderReminders();
+</script>
+</body>
+</html>

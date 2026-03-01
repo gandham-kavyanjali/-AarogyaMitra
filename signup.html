@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Sign Up | Tele Medicine Access</title>
+<style>
+body {
+  margin: 0;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  background: url('https://wallpapers.com/images/featured/medical-background-cjge7e89adg6ub8x.jpg') no-repeat center center/cover;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+  backdrop-filter: brightness(0.6);
+}
+.signup-container {
+  background: rgba(255, 255, 255, 0.95);
+  padding: 40px;
+  border-radius: 15px;
+  box-shadow: 0px 8px 20px rgba(0, 0, 0, 0.2);
+  width: 380px;
+  text-align: center;
+}
+h2 { color: teal; margin-bottom: 20px; }
+label { display: block; text-align: left; margin-bottom: 6px; font-weight: 600; color: #333; }
+input, select { width: 100%; padding: 12px; margin-bottom: 15px; border: 1px solid #ccc; border-radius: 8px; font-size: 14px; }
+button { width: 100%; padding: 12px; background: teal; color: white; border: none; border-radius: 8px; font-size: 16px; font-weight: bold; cursor: pointer; transition: 0.3s ease; }
+button:hover { background: #006666; }
+.language-switcher { position: absolute; top: 15px; right: 20px; }
+select#languageSwitcher { width: auto; padding: 5px; border-radius: 6px; border: 1px solid #ccc; font-size: 14px; }
+.error { color: red; font-size: 13px; margin-bottom: 10px; display: none; }
+.login-text { margin-top: 15px; font-size: 14px; }
+.login-text a { color: teal; font-weight: bold; text-decoration: none; }
+.login-text a:hover { text-decoration: underline; }
+</style>
+</head>
+<body>
+
+<div class="language-switcher">
+  <select id="languageSwitcher">
+    <option value="en">English</option>
+    <option value="hi">हिन्दी</option>
+    <option value="pa">ਪੰਜਾਬੀ</option>
+  </select>
+</div>
+
+<div class="signup-container">
+  <h2 id="title">Create Your Account</h2>
+  <form id="signupForm">
+    <label for="username" id="usernameLabel">Username</label>
+    <input type="text" id="username" placeholder="Enter username" required>
+
+    <label for="role" id="roleLabel">Role</label>
+    <select id="role" required>
+      <option value="">-- Select Role --</option>
+      <option value="patient">Patient</option>
+      <option value="doctor">Doctor</option>
+    </select>
+
+    <label for="gender" id="genderLabel">Gender</label>
+    <select id="gender" required>
+      <option value="">-- Select Gender --</option>
+      <option value="male">Male</option>
+      <option value="female">Female</option>
+      <option value="other">Other</option>
+    </select>
+
+    <label for="age" id="ageLabel">Age</label>
+    <input type="number" id="age" placeholder="Enter age" required>
+
+    <label for="email" id="emailLabel">Email</label>
+    <input type="email" id="email" placeholder="Enter your email" required>
+
+    <label for="password" id="passwordLabel">Password</label>
+    <input type="password" id="password" placeholder="Enter password" required>
+
+    <p class="error" id="errorMsg">Please fill all fields correctly.</p>
+
+    <button type="submit" id="signupBtn">Sign Up</button>
+  </form>
+
+  <p class="login-text" id="loginText">Already have an account? <a href="login.html">Login</a></p>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
+<script>
+  const supabaseUrl = 'https://qksssdievwrptsqluvxa.supabase.co'  // Your Project URL
+  const supabaseKey = 'YOUR_ANON_PUBLIC_KEY'  // Your anon public key
+  const supabase = supabase.createClient(supabaseUrl, supabaseKey)
+
+  document.getElementById("signupForm").addEventListener("submit", async function(e){
+    e.preventDefault();
+    const username = document.getElementById("username").value.trim();
+    const role = document.getElementById("role").value;
+    const gender = document.getElementById("gender").value;
+    const age = document.getElementById("age").value;
+    const email = document.getElementById("email").value;
+    const password = document.getElementById("password").value;
+    const errorMsg = document.getElementById("errorMsg");
+
+    if(!username || !role || !gender || age <= 0 || !email.includes("@") || password.length < 4){
+      errorMsg.style.display = "block";
+      return;
+    }
+    errorMsg.style.display = "none";
+
+    // Supabase Signup with Email Verification
+    const { data, error } = await supabase.auth.signUp({
+      email: email,
+      password: password,
+      options: {
+        data: { username, role, gender, age },
+        emailRedirectTo: "http://localhost:5500/login.html" // after confirmation
+      }
+    });
+
+    if(error){
+      alert("❌ Signup Failed: " + error.message);
+    } else {
+      alert("✅ Account created! Please check your email for confirmation.");
+    }
+  });
+</script>
+</body>
+</html>

@@ -1,0 +1,315 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Professional Online Pharmacy</title>
+<link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+<style>
+  body{font-family:'Roboto',sans-serif;margin:0;padding:0;background:#f4f4f9;color:#333}
+  header{background:#17a2b8;color:white;padding:15px;text-align:center;font-size:22px;font-weight:700}
+  nav{display:flex;justify-content:center;gap:15px;background:#138496;padding:10px;flex-wrap:wrap}
+  nav button{background:white;color:#138496;border:none;padding:8px 14px;border-radius:5px;cursor:pointer;font-weight:500;transition:0.3s}
+  nav button:hover{background:#0f6674;color:white}
+  .container{padding:20px}
+  .search-box{display:flex;justify-content:center;margin:15px 0}
+  .search-box input{width:70%;padding:10px;border:1px solid #ccc;border-radius:5px}
+  .search-box button{margin-left:10px;padding:10px;border:none;background:#28a745;color:white;border-radius:5px;cursor:pointer}
+  .medicine-list,.cart{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:15px}
+  .card{background:white;padding:15px;border-radius:10px;box-shadow:0 2px 5px rgba(0,0,0,0.1);text-align:center}
+  .card img{max-width:100px;height:100px;object-fit:contain;margin-bottom:10px}
+  .btn{background:#17a2b8;color:white;padding:8px 12px;border:none;border-radius:5px;cursor:pointer;transition:0.3s}
+  .btn:hover{background:#138496}
+  .cart-summary,.order-summary{margin-top:20px;padding:15px;background:white;border-radius:10px;box-shadow:0 2px 5px rgba(0,0,0,0.1)}
+  footer{margin-top:30px;background:#333;color:white;text-align:center;padding:12px}
+  .dark-mode{background:#1e1e1e;color:#f1f1f1}
+  .dark-mode header,.dark-mode nav{background:#111}
+  .dark-mode .card,.dark-mode .cart-summary,.dark-mode .order-summary{background:#2c2c2c;color:white}
+  .modal{display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.7);justify-content:center;align-items:center}
+  .modal-content{background:white;padding:20px;border-radius:10px;max-width:500px;width:90%;max-height:80vh;overflow:auto}
+  .close{float:right;font-size:20px;cursor:pointer;color:red}
+</style>
+</head>
+<body>
+<header>💊 Professional Online Pharmacy</header>
+<nav>
+  <button onclick="toggleDarkMode()">🌙 Dark Mode</button>
+  <button id="myOrdersBtn">📦 My Orders</button>
+  <button onclick="document.getElementById('uploadModal').style.display='flex'">📷 Upload Prescription</button>
+  <button onclick="document.getElementById('addressModal').style.display='flex'">🏠 Add Address</button>
+</nav>
+
+<div class="container">
+  <div class="search-box">
+    <input type="text" id="search" placeholder="Search medicines or symptoms...">
+    <button onclick="voiceSearch()"><i class="fa fa-microphone"></i></button>
+  </div>
+
+  <h2>Available Medicines</h2>
+  <div class="medicine-list" id="medicineList"></div>
+
+  <h2>🛒 Your Cart</h2>
+  <div class="cart" id="cart"></div>
+  <div class="cart-summary" id="cartSummary" style="display:none">
+    <h3>Cart Summary</h3>
+    <p id="cartTotal"></p>
+
+    <!-- Payment Options -->
+    <div id="paymentOptions">
+      <label><input type="radio" name="paymentMethod" value="Card"> Credit/Debit Card</label><br>
+      <label><input type="radio" name="paymentMethod" value="UPI"> UPI</label><br>
+      <label><input type="radio" name="paymentMethod" value="Wallet"> Wallet</label><br>
+      <label><input type="radio" name="paymentMethod" value="COD"> Cash on Delivery (COD)</label>
+    </div>
+
+    <button class="btn" id="payNowBtn">💳 Pay Now</button>
+  </div>
+
+  <div class="order-summary" id="orderSummary" style="display:none">
+    <h2>Order Summary</h2>
+    <p><b>Order ID:</b> <span id="orderId"></span></p>
+    <div id="summaryItems"></div>
+    <p><b>Total:</b> <span id="summaryTotal"></span></p>
+    <p><b>Delivery Address:</b> <span id="summaryAddress"></span></p>
+    <p><b>Prescription:</b> <br><img id="summaryPrescription" style="max-width:150px;display:none"></p>
+    <p><b>Status:</b> <span id="summaryStatus"></span></p>
+    <p><b>Payment Method:</b> <span id="summaryPayment"></span></p>
+  </div>
+</div>
+
+<!-- Upload Prescription Modal -->
+<div class="modal" id="uploadModal">
+  <div class="modal-content">
+    <span class="close" onclick="this.parentElement.parentElement.style.display='none'">&times;</span>
+    <h2>Upload Prescription</h2>
+    <input type="file" id="prescriptionUpload" accept="image/*">
+  </div>
+</div>
+
+<!-- Address Modal -->
+<div class="modal" id="addressModal">
+  <div class="modal-content">
+    <span class="close" onclick="this.parentElement.parentElement.style.display='none'">&times;</span>
+    <h2>Delivery Address</h2>
+    <input type="text" id="addressName" placeholder="Full Name" style="width:100%;margin:5px 0">
+    <input type="text" id="addressPhone" placeholder="Phone Number" style="width:100%;margin:5px 0">
+    <textarea id="addressText" placeholder="Full Address" style="width:100%;margin:5px 0"></textarea>
+    <input type="text" id="addressPincode" placeholder="Pincode" style="width:100%;margin:5px 0">
+    <button class="btn" onclick="saveAddress()">Save Address</button>
+  </div>
+</div>
+
+<!-- Order History Modal -->
+<div class="modal" id="orderHistoryModal">
+  <div class="modal-content">
+    <span class="close" onclick="this.parentElement.parentElement.style.display='none'">&times;</span>
+    <h2>📦 Order History</h2>
+    <div id="ordersList"></div>
+  </div>
+</div>
+
+<footer>&copy; 2025 Professional Online Pharmacy</footer>
+
+<script>
+let cart = [];
+let uploadedPrescription = null;
+let deliveryAddress = null;
+
+// Medicines
+const medicines = [
+  {id:1,name_en:"Crocin Advance",price:50,img:"https://5.imimg.com/data5/SELLER/Default/2022/2/UZ/QE/SS/46939218/crocin-1000x1000.jpg"},
+  {id:2,name_en:"Dolo 650",price:35,img:"http://ayushcare.in/cdn/shop/products/Dolo650.jpg?v=1649932067"},
+  {id:3,name_en:"Azithromycin",price:120,img:"https://tse1.mm.bing.net/th/id/OIP.7ZehRa3Omq1rSW97D3QyDQHaHa?pid=Api&P=0&h=180"},
+  {id:4,name_en:"Paracetamol",price:20,img:"https://tse4.mm.bing.net/th/id/OIP.CIl7rcgZT1PTXdL-GxiGNwHaHa?pid=Api&P=0&h=180"},
+  {id:5,name_en:"Amoxicillin",price:90,img:"https://tse3.mm.bing.net/th/id/OIP.irhXaPER7jTHvOCjm3wnkwHaFb?pid=Api&P=0&h=180"},
+  {id:6,name_en:"Ibuprofen",price:60,img:"https://c8.alamy.com/comp/2DCK458/a-pack-of-ibuprofen-200-mg-tablets-with-two-tablets-against-white-background-uk-pharmaceutical-products-2DCK458.jpg"}
+];
+
+// Render medicines
+function renderMedicines(list){
+  const container=document.getElementById("medicineList");
+  container.innerHTML="";
+  list.forEach(m=>{
+    const div=document.createElement("div");
+    div.className="card";
+    div.innerHTML=`
+      <img src="${m.img}">
+      <h3>${m.name_en}</h3>
+      <p>₹${m.price}</p>
+      <button class="btn" onclick="addToCart(${m.id})">Add to Cart</button>
+    `;
+    container.appendChild(div);
+  });
+}
+renderMedicines(medicines);
+
+// Cart handling
+function addToCart(id){
+  const med=medicines.find(m=>m.id===id);
+  const item=cart.find(i=>i.id===id);
+  if(item){item.qty++}else{cart.push({...med,qty:1})}
+  renderCart();
+}
+function renderCart(){
+  const c=document.getElementById("cart");
+  c.innerHTML="";
+  if(cart.length===0){c.innerHTML="<p>Cart is empty</p>";document.getElementById("cartSummary").style.display="none";return}
+  cart.forEach(m=>{
+    const div=document.createElement("div");
+    div.className="card";
+    div.innerHTML=`${m.name_en} - ₹${m.price} × ${m.qty}`;
+    c.appendChild(div);
+  });
+  document.getElementById("cartSummary").style.display="block";
+  document.getElementById("cartTotal").textContent="Total: ₹"+cart.reduce((s,i)=>s+i.price*i.qty,0);
+}
+
+// Pay Now → Create Order
+document.getElementById("payNowBtn").onclick = () => {
+  if (cart.length === 0) { alert("Cart empty"); return; }
+
+  if (!deliveryAddress || !deliveryAddress.name || !deliveryAddress.address) {
+    alert("Please add your delivery address before paying!");
+    document.getElementById("addressModal").style.display = "flex";
+    return;
+  }
+
+  const selectedPayment = document.querySelector('input[name="paymentMethod"]:checked');
+  if (!selectedPayment) { alert("Please select a payment method!"); return; }
+
+  const order = {
+    id: "ORD" + Date.now(),
+    date: new Date().toLocaleString(),
+    items: cart.map(m => ({ name: m.name_en, qty: m.qty, price: m.price })),
+    total: cart.reduce((s, i) => s + i.price * i.qty, 0),
+    prescription: uploadedPrescription || null,
+    address: deliveryAddress,
+    status: "Processing",
+    paymentMethod: selectedPayment.value
+  };
+
+  let orders = JSON.parse(localStorage.getItem("orders") || "[]");
+  orders.push(order);
+  localStorage.setItem("orders", JSON.stringify(orders));
+
+  showSummary(order);
+  simulateOrderStatus(order.id);
+
+  cart = [];
+  renderCart();
+};
+
+// Show summary
+function showSummary(order){
+  document.getElementById("orderId").textContent = order.id;
+  const items = document.getElementById("summaryItems");
+  items.innerHTML = "";
+  order.items.forEach(m=>{
+    const div=document.createElement("div");
+    div.textContent=`${m.name} - ₹${m.price} × ${m.qty}`;
+    items.appendChild(div);
+  });
+  document.getElementById("summaryTotal").textContent = "₹"+order.total;
+  document.getElementById("summaryPayment").textContent = order.paymentMethod;
+  if(order.address && order.address.name){
+    document.getElementById("summaryAddress").textContent =
+      `${order.address.name}, ${order.address.phone}, ${order.address.address}, ${order.address.pincode}`;
+  } else {
+    document.getElementById("summaryAddress").textContent = "No address provided.";
+  }
+  const img = document.getElementById("summaryPrescription");
+  img.style.display = "none";
+  if(order.prescription){ img.src = order.prescription; img.style.display="block"; }
+  document.getElementById("summaryStatus").textContent = order.status;
+  document.getElementById("orderSummary").style.display = "block";
+  window.scrollTo({top:document.getElementById("orderSummary").offsetTop,behavior:'smooth'});
+}
+
+// Simulate order status update
+function simulateOrderStatus(orderId){
+  setTimeout(()=>{
+    let orders = JSON.parse(localStorage.getItem("orders") || "[]");
+    let order = orders.find(o=>o.id===orderId);
+    if(order){ order.status="Delivered"; localStorage.setItem("orders",JSON.stringify(orders)); document.getElementById("summaryStatus").textContent="Delivered ✅"; }
+  },5000);
+}
+
+// Save address
+function saveAddress(){
+  deliveryAddress = {
+    name: document.getElementById("addressName").value,
+    phone: document.getElementById("addressPhone").value,
+    address: document.getElementById("addressText").value,
+    pincode: document.getElementById("addressPincode").value
+  };
+  if(!deliveryAddress.name || !deliveryAddress.address){
+    alert("Name and address are required!");
+    return;
+  }
+  alert("Address Saved!");
+  document.getElementById("addressModal").style.display="none";
+}
+
+// Upload prescription
+document.getElementById("prescriptionUpload").onchange=function(e){
+  const reader=new FileReader();
+  reader.onload=function(){uploadedPrescription=reader.result;alert("Prescription uploaded!");document.getElementById("uploadModal").style.display="none";};
+  reader.readAsDataURL(e.target.files[0]);
+};
+
+// Order history
+document.getElementById("myOrdersBtn").onclick=()=>{
+  const modal=document.getElementById("orderHistoryModal");
+  const list=document.getElementById("ordersList");
+  list.innerHTML="";
+  const orders=JSON.parse(localStorage.getItem("orders")||"[]");
+  if(orders.length===0){list.innerHTML="<p>No previous orders.</p>";}
+  else{
+    orders.forEach(o=>{
+      const div=document.createElement("div");
+      div.className="card";
+      div.innerHTML=`
+        <p><b>Order ID:</b> ${o.id}</p>
+        <p><b>Date:</b> ${o.date}</p>
+        <p><b>Status:</b> ${o.status}</p>
+        <ul>${o.items.map(i=>`<li>${i.name} - ₹${i.price} × ${i.qty}</li>`).join("")}</ul>
+        <p><b>Total:</b> ₹${o.total}</p>
+        <p><b>Delivery Address:</b><br>
+          ${o.address?.name||"-"}, ${o.address?.phone||"-"}, ${o.address?.address||"-"}, ${o.address?.pincode||"-"}
+        </p>
+        <p><b>Payment Method:</b> ${o.paymentMethod||"-"}</p>
+        ${o.prescription?`<p><b>Prescription:</b><br><img src="${o.prescription}" style="max-width:120px;border-radius:8px;"></p>`:""}
+      `;
+      list.appendChild(div);
+    });
+  }
+  modal.style.display="flex";
+};
+
+// Dark mode
+function toggleDarkMode(){document.body.classList.toggle("dark-mode");}
+
+// Voice search
+function voiceSearch(){
+  const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+  if(!SpeechRecognition){ alert("Speech Recognition not supported in this browser."); return; }
+  const recog = new SpeechRecognition();
+  recog.lang = 'en-US';
+  recog.start();
+  recog.onresult = function(e){
+    document.getElementById("search").value = e.results[0][0].transcript;
+    filterMedicines();
+  }
+  recog.onerror = function(){ alert("Voice recognition error. Please type manually."); }
+}
+
+// Search filter
+document.getElementById("search").addEventListener("input",filterMedicines);
+function filterMedicines(){
+  const val=document.getElementById("search").value.toLowerCase();
+  renderMedicines(medicines.filter(m=>m.name_en.toLowerCase().includes(val)));
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,309 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Doctor Dashboard</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+
+<style>
+body {
+  font-family: 'Segoe UI', sans-serif;
+  background: #f9fcff;
+  margin: 0;
+  padding: 0;
+}
+header {
+  background: linear-gradient(90deg, #17a2b8, #138496);
+  color: white;
+  padding: 15px;
+  text-align: center;
+  border-bottom-left-radius: 12px;
+  border-bottom-right-radius: 12px;
+  box-shadow: 0 3px 8px rgba(0,0,0,0.15);
+  position: relative;
+}
+header h1 { margin: 0; font-size: 20px; }
+header p { margin: 2px 0 0 0; font-size: 13px; }
+.notification {
+  position: absolute;
+  top: 15px;
+  right: 20px;
+  font-size: 18px;
+  cursor: pointer;
+}
+.notification i { color: white; }
+.notification .badge {
+  position: absolute;
+  top: -5px;
+  right: -6px;
+  background: red;
+  color: white;
+  font-size: 11px;
+  padding: 2px 5px;
+  border-radius: 50%;
+}
+nav {
+  display: flex;
+  justify-content: center;
+  background: #138496;
+  padding: 8px;
+}
+nav a {
+  color: white;
+  margin: 0 12px;
+  text-decoration: none;
+  font-weight: bold;
+  font-size: 13px;
+  transition: 0.3s;
+}
+nav a:hover { color: #ffe066; }
+main {
+  padding: 15px;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 15px;
+  max-width: 1100px;
+  margin: auto;
+}
+.card {
+  background: linear-gradient(135deg, #e0f7fa, #b2ebf2);
+  border-radius: 10px;
+  padding: 10px;
+  color: #004d40;
+  font-weight: 500;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+  transition: all 0.2s ease;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  min-height: 250px; /* uniform height */
+}
+.card:hover { transform: translateY(-2px); box-shadow: 0 5px 12px rgba(0,0,0,0.15); }
+.card h2 { margin-top: 0; color: #00796b; text-align: center; font-size: 16px; }
+
+.patient-name { cursor: pointer; font-weight: 600; color: #00695c; font-size: 14px; }
+.patient-details {
+  display: none; margin-top: 5px; padding: 5px;
+  background: rgba(255,255,255,0.9); border-radius: 6px;
+  font-size: 13px; text-align: left;
+}
+
+table {
+  width: 100%; border-collapse: collapse; margin-top: 10px;
+  background: rgba(255, 255, 255, 0.95);
+  border-radius: 10px; overflow: hidden;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.08);
+}
+th, td { padding: 8px; text-align: center; font-size: 13px; }
+th {
+  background: linear-gradient(90deg, #17a2b8, #138496);
+  color: white; font-weight: 600; text-transform: uppercase;
+}
+td { background: rgba(255,255,255,0.85); color: #004d40; border-bottom: 1px solid #ddd; }
+tr:nth-child(even) td { background: rgba(230,247,250,0.9); }
+tr:hover td { background: #d9f5f8; transition: background 0.2s ease; }
+
+table button {
+  padding: 4px 8px; background: linear-gradient(90deg, #17a2b8, #138496);
+  color: white; border: none; border-radius: 6px;
+  cursor: pointer; font-size: 12px; font-weight: 500; transition: 0.2s;
+}
+table button:hover { background: linear-gradient(90deg, #138496, #0f6b73); }
+
+input, select, textarea {
+  padding: 8px 10px; border-radius: 8px; border: 1px solid #b2ebf2;
+  width: 100%; margin: 6px 0; font-size: 13px; background: rgba(255,255,255,0.95);
+}
+input:focus, select:focus, textarea:focus {
+  outline: none; border-color: #17a2b8; box-shadow: 0 0 5px rgba(23,162,184,0.5);
+}
+button {
+  padding: 8px 12px; background: linear-gradient(90deg, #17a2b8, #138496);
+  color: white; border: none; border-radius: 8px;
+  cursor: pointer; font-size: 14px; font-weight: 600; transition: 0.2s;
+}
+button:hover {
+  background: linear-gradient(90deg, #138496, #0f6b73);
+  transform: translateY(-1px); box-shadow: 0 3px 6px rgba(0,0,0,0.15);
+}
+
+@media(max-width: 900px){ main { grid-template-columns: 1fr; } }
+</style>
+</head>
+<body>
+
+<header>
+  <h1><i class="fa-solid fa-user-doctor"></i> Welcome Doctor</h1>
+  <p>Manage patients and appointments</p>
+  <div class="notification" onclick="showNotifications()">
+    <i class="fa-solid fa-bell"></i>
+    <span class="badge" id="notifyBadge" style="display:none;">0</span>
+  </div>
+</header>
+
+<nav>
+  <a href="#"><i class="fa-solid fa-house"></i> Dashboard</a>
+  <a href="#patients"><i class="fa-solid fa-user-group"></i> Patients</a>
+  <a href="#appointments"><i class="fa-solid fa-calendar-check"></i> Appointments</a>
+</nav>
+
+<main>
+  <div class="card" id="patients">
+    <h2><i class="fa-solid fa-user-group"></i> Patient List</h2>
+    <table>
+      <thead><tr><th>Name</th><th>Action</th></tr></thead>
+      <tbody id="patientTable"></tbody>
+    </table>
+  </div>
+
+  <div class="card">
+    <h2><i class="fa-solid fa-user-plus"></i> Add Patient</h2>
+    <form id="patientForm">
+      <input type="text" id="pname" placeholder="👤 Name" required>
+      <input type="number" id="page" placeholder="🎂 Age" required>
+      <input type="text" id="pcondition" placeholder="⚕️ Condition" required>
+      <button type="submit">➕ Add</button>
+    </form>
+  </div>
+
+  <div class="card" id="appointments">
+    <h2><i class="fa-solid fa-calendar-check"></i> Appointments</h2>
+    <table>
+      <thead><tr><th>Patient</th><th>Date</th><th>Time</th><th>Status</th><th>Action</th></tr></thead>
+      <tbody id="appointmentTable"></tbody>
+    </table>
+  </div>
+
+  <div class="card">
+    <h2><i class="fa-solid fa-calendar-plus"></i> Schedule</h2>
+    <form id="appointmentForm">
+      <input type="text" id="aname" placeholder="👤 Patient" required>
+      <input type="date" id="adate" required>
+      <input type="time" id="atime" required>
+      <select id="astatus">
+        <option value="Confirmed">✅ Confirmed</option>
+        <option value="Pending">⏳ Pending</option>
+      </select>
+      <button type="submit">📅 Add</button>
+    </form>
+  </div>
+</main>
+
+<script>
+let patientCount = 2;
+const patients = [
+  {id:"P001", name:"Ravi Kumar", age:45, condition:"Diabetes"},
+  {id:"P002", name:"Anjali Sharma", age:32, condition:"Asthma"}
+];
+let notifications = JSON.parse(localStorage.getItem("doctorNotifications") || "[]");
+
+function updateBadge() {
+  const badge = document.getElementById("notifyBadge");
+  badge.style.display = notifications.length>0?"inline":"none";
+  badge.textContent = notifications.filter(n=>n.status==="Pending").length;
+}
+
+function showNotifications() {
+  if (!notifications.length){ alert("No new notifications."); return; }
+  let msg = "🔔 Appointment Requests:\n\n";
+  notifications.forEach((n,i)=> msg+=`${i+1}. ${n.patient} - ${n.date} ${n.time} (Status: ${n.status})\n`);
+  alert(msg);
+}
+
+function renderPatients(){
+  const table=document.getElementById("patientTable");
+  table.innerHTML="";
+  patients.forEach(p=>{
+    const row=table.insertRow();
+    row.innerHTML=`<td>
+      <span class="patient-name" onclick="toggleDetails('${p.id}')">${p.name}</span>
+      <div id="details-${p.id}" class="patient-details"></div>
+    </td>
+    <td>
+      <button onclick="editPatient('${p.id}')">✏️</button>
+      <button onclick="deletePatient('${p.id}')">🗑️</button>
+    </td>`;
+  });
+}
+
+function toggleDetails(id){
+  const details=document.getElementById("details-"+id);
+  const today = new Date().toISOString().split('T')[0];
+  const patient = patients.find(p=>p.id===id);
+  const todayAppointments = notifications.filter(n => n.patient===patient.name && n.date===today);
+  
+  let html = `<strong>ID:</strong> ${id}<br>
+              <strong>Age:</strong> ${patient.age}<br>
+              <strong>Condition:</strong> ${patient.condition}<br>`;
+  html += todayAppointments.length>0? `<strong>Today's Appointments:</strong><br>` + todayAppointments.map(a=>`- ${a.time} (${a.status})`).join('<br>') : `<em>No appointments today</em>`;
+  details.innerHTML = html;
+  details.style.display = details.style.display==="block"?"none":"block";
+}
+
+document.getElementById("patientForm").addEventListener("submit", e=>{
+  e.preventDefault(); patientCount++;
+  const name=document.getElementById("pname").value;
+  const age=document.getElementById("page").value;
+  const condition=document.getElementById("pcondition").value;
+  const newId="P"+String(patientCount).padStart(3,"0");
+  patients.push({id:newId,name,age,condition});
+  renderPatients(); e.target.reset();
+});
+
+function editPatient(id){
+  const p = patients.find(x => x.id === id);
+  const newCondition = prompt("Condition:", p.condition);
+  if(newCondition) p.condition = newCondition;
+  renderPatients();
+}
+
+function deletePatient(id){
+  if(confirm("Delete patient?")){
+    const index=patients.findIndex(x=>x.id===id);
+    patients.splice(index,1); renderPatients();
+  }
+}
+
+function renderAppointments(){
+  const table=document.getElementById("appointmentTable");
+  table.innerHTML="";
+  notifications.forEach((a,index)=>{
+    const row=table.insertRow();
+    row.innerHTML=`<td>${a.patient}</td><td>${a.date}</td><td>${a.time}</td>
+      <td style="color:${a.status==='Confirmed'?'green':'orange'}">${a.status}</td>
+      <td>
+        <button onclick="updateStatus(${index},'Confirmed')">✅</button>
+        <button onclick="updateStatus(${index},'Rejected')">❌</button>
+      </td>`;
+  });
+}
+
+function updateStatus(index,status){
+  notifications[index].status=status;
+  localStorage.setItem("doctorNotifications",JSON.stringify(notifications));
+  renderAppointments(); updateBadge();
+}
+
+document.getElementById("appointmentForm").addEventListener("submit",e=>{
+  e.preventDefault();
+  const patient=document.getElementById("aname").value;
+  const date=document.getElementById("adate").value;
+  const time=document.getElementById("atime").value;
+  const status=document.getElementById("astatus").value;
+  notifications.push({patient,date,time,status});
+  localStorage.setItem("doctorNotifications",JSON.stringify(notifications));
+  renderAppointments(); updateBadge(); e.target.reset();
+});
+
+window.addEventListener("storage", e=>{
+  if(e.key==="doctorNotifications"){
+    notifications = JSON.parse(localStorage.getItem("doctorNotifications") || "[]");
+    renderAppointments(); updateBadge();
+  }
+});
+
+renderPatients(); renderAppointments(); updateBadge();
+</script>
+</body>
+</html>

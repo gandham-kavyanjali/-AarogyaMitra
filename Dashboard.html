@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Aarogya Mitra</title>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+<style>
+body { font-family:'Poppins',sans-serif; margin:0; padding:0; background:#f0f8ff; color:#333; transition:margin-left 0.3s;}
+.sidebar { height:100%; width:0; position:fixed; top:0; left:0; background-color:#138496; overflow-x:hidden; transition:0.3s; padding-top:60px; z-index:1000;}
+.sidebar a { padding:12px 20px; text-decoration:none; font-size:18px; color:#fff; display:block; transition:0.3s;}
+.sidebar a:hover { background-color:#17a2b8;}
+#toggleBtn { position:fixed; top:20px; left:20px; font-size:24px; cursor:pointer; color:#fff; z-index:1100;}
+header { background:linear-gradient(90deg,#17a2b8,#138496); color:#fff; text-align:center; padding:20px; font-size:24px; font-weight:600; position:relative;}
+#profileIcon, #emergencyIcon { position:absolute; top:20px; font-size:22px; cursor:pointer;}
+#profileIcon { right:20px;}
+#emergencyIcon { right:60px;}
+#languageSelector { position:absolute; top:20px; right:100px; padding:5px; border-radius:6px; border:none; cursor:pointer;}
+.dashboard,.widgets { display:grid; grid-template-columns:repeat(auto-fit,minmax(220px,1fr)); gap:25px; max-width:1200px; margin:40px auto; padding:0 20px;}
+.card,.widget { background:linear-gradient(135deg,#e0f7fa,#b2ebf2); border-radius:18px; text-align:center; padding:20px; color:#004d40; font-weight:500; box-shadow:0 6px 15px rgba(0,0,0,0.1); display:flex; flex-direction:column; justify-content:center; text-decoration:none; cursor:pointer; transition:all 0.3s ease;}
+.card:hover,.widget:hover { transform:translateY(-6px); box-shadow:0 10px 25px rgba(0,0,0,0.2);}
+.card-header,.widget-header { background:rgba(255,255,255,0.85); border-radius:12px; padding:10px 15px; margin-bottom:15px; font-size:18px; font-weight:600; display:flex; align-items:center; justify-content:center; gap:8px; color:#004d40;}
+.card i,.widget i { font-size:38px; color:#00796b;}
+#dailyTip,#dailyChallenge { margin-top:10px; padding:12px; border-radius:10px; background:rgba(255,255,255,0.95); color:#333; font-size:14px; font-weight:500; text-align:left;}
+button { padding:8px 16px; border:none; border-radius:8px; background:#00796b; color:white; cursor:pointer; margin-top:14px; font-weight:600; transition:0.3s;}
+button:hover { background:#004d40;}
+#profileModal { display:none; position:fixed; top:0; left:0; right:0; bottom:0; background-color:rgba(0,0,0,0.6); z-index:2000; justify-content:center; align-items:center;}
+.modal-content { background:#f1f1f1; padding:20px; border-radius:15px; max-width:400px; width:90%; box-shadow:0 8px 25px rgba(0,0,0,0.3); position:relative;}
+.modal-content h2 { text-align:center; margin-bottom:20px;}
+.modal-content label { display:block; margin:10px 0 5px; font-weight:600;}
+.modal-content input,.modal-content select,.modal-content textarea { width:100%; padding:8px; border-radius:8px; border:1px solid #ccc; box-sizing:border-box;}
+#otherLabel,#otherDisease { display:none; margin-top:5px;}
+.closeBtn { position:absolute; top:10px; right:15px; font-size:20px; cursor:pointer; color:#555;}
+@media(max-width:600px){ header{font-size:20px} .card i,.widget i{font-size:30px} .card-header,.widget-header{font-size:16px} }
+</style>
+</head>
+<body>
+
+<div id="toggleBtn" onclick="toggleSidebar()"><i class="fa-solid fa-bars"></i></div>
+
+<div class="sidebar" id="sidebar">
+  <a href="#" data-key="Dashboard"><i class="fa-solid fa-house"></i> Dashboard</a>
+  <a href="symptom-checker.html" data-key="Symptom Checker"><i class="fa-solid fa-stethoscope"></i> Symptom Checker</a>
+  <a href="appointment.html" data-key="Book Appointment"><i class="fa-solid fa-calendar-check"></i> Book Appointment</a>
+  <a href="hospitals.html" data-key="Find Hospitals"><i class="fa-solid fa-hospital"></i> Find Hospitals</a>
+  <a href="reports.html" data-key="Reports"><i class="fa-solid fa-file-medical"></i> Reports</a>
+  <a href="medical-orders.html" data-key="Medical Orders"><i class="fa-solid fa-prescription-bottle-medical"></i> Medical Orders</a>
+  <a href="#" id="logoutLink" onclick="logout()"><i class="fa-solid fa-right-from-bracket"></i> Logout</a>
+</div>
+
+<header>
+  <i class="fa-solid fa-heart-pulse"></i> <span id="dashboardTitle">Aarogya Mitra</span>
+  <a href="emergency.html"><i id="emergencyIcon" class="fa-solid fa-triangle-exclamation"></i></a>
+  <i id="profileIcon" class="fa-solid fa-user" onclick="openProfile()"></i>
+  <select id="languageSelector" onchange="changeLanguage()">
+    <option value="en">English</option>
+    <option value="hi">Hindi</option>
+    <option value="pa">Punjabi</option>
+  </select>
+</header>
+
+<div class="dashboard">
+  <a href="symptom-checker.html" class="card" data-key="Symptom Checker">
+    <div class="card-header"><i class="fa-solid fa-stethoscope"></i> Symptom Checker</div>
+  </a>
+  <a href="appointment.html" class="card" data-key="Book Appointment">
+    <div class="card-header"><i class="fa-solid fa-calendar-check"></i> Book Appointment</div>
+  </a>
+  <a href="hospitals.html" class="card" data-key="Find Hospitals">
+    <div class="card-header"><i class="fa-solid fa-hospital"></i> Find Hospitals</div>
+  </a>
+  <a href="reports.html" class="card" data-key="Reports">
+    <div class="card-header"><i class="fa-solid fa-file-medical"></i> Reports</div>
+  </a>
+  <a href="medical-orders.html" class="card" data-key="Medical Orders">
+    <div class="card-header"><i class="fa-solid fa-prescription-bottle-medical"></i> Medical Orders</div>
+  </a>
+</div>
+
+<div class="widgets">
+  <div class="widget">
+    <div class="widget-header" data-key="Daily Health Tip">Daily Health Tip</div>
+    <div id="dailyTip">💡 Stay hydrated! Aim for at least 8 glasses of water daily.</div>
+  </div>
+  <div class="widget">
+    <div class="widget-header" data-key="Today’s Challenge">Today’s Challenge</div>
+    <div id="dailyChallenge">🏃 Walk 10,000 steps today!</div>
+  </div>
+  <div class="widget">
+    <div class="widget-header" data-key="Reminders"><i class="fa-solid fa-bell"></i> Reminders</div>
+    <p>Check and manage your reminders</p>
+    <a href="reminder.html"><button>Go to Reminders</button></a>
+  </div>
+</div>
+
+<!-- Profile Modal -->
+<div id="profileModal">
+  <div class="modal-content">
+    <span class="closeBtn" onclick="closeProfile()">&times;</span>
+    <h2 data-key="Profile Information">Profile Information</h2>
+    <label data-key="Name">Name</label><input type="text" id="name">
+    <label data-key="Age">Age</label><input type="number" id="age">
+    <label data-key="Weight">Weight (kg)</label><input type="number" id="weight">
+    <label data-key="Height">Height (cm)</label><input type="number" id="height">
+    <label data-key="Disease">Disease</label>
+    <select id="disease" onchange="checkOtherDisease()">
+      <option value="">Select disease</option>
+      <option value="diabetes">Diabetes</option>
+      <option value="heart">Heart</option>
+      <option value="asthma">Asthma</option>
+      <option value="bp">BP</option>
+      <option value="kidney">Kidney</option>
+      <option value="obesity">Obesity</option>
+      <option value="cancer">Cancer</option>
+      <option value="arthritis">Arthritis</option>
+      <option value="thyroid">Thyroid</option>
+      <option value="cholesterol">Cholesterol</option>
+      <option value="other">Other</option>
+    </select>
+    <label id="otherLabel" data-key="Enter Disease">Enter Disease</label>
+    <input type="text" id="otherDisease">
+    <label data-key="Medical History">Medical History</label><textarea id="history" rows="3"></textarea>
+    <button onclick="saveProfile()" data-key="Save Profile">Save Profile</button>
+  </div>
+</div>
+
+<script>
+const toggleSidebar = () => {
+  const sidebar=document.getElementById('sidebar');
+  if(sidebar.style.width==='250px'){ sidebar.style.width='0'; document.body.style.marginLeft='0'; }
+  else{ sidebar.style.width='250px'; document.body.style.marginLeft='250px'; }
+}
+
+const openProfile = () => { document.getElementById('profileModal').style.display='flex'; loadProfile(); }
+const closeProfile = () => { document.getElementById('profileModal').style.display='none'; }
+const checkOtherDisease = () => {
+  const disease=document.getElementById('disease').value;
+  document.getElementById('otherLabel').style.display=disease==='other'?'block':'none';
+  document.getElementById('otherDisease').style.display=disease==='other'?'block':'none';
+}
+
+const saveProfile = () => {
+  let disease=document.getElementById('disease').value;
+  if(disease==='other') disease=document.getElementById('otherDisease').value;
+  const profile={
+    name:document.getElementById('name').value,
+    age:document.getElementById('age').value,
+    weight:document.getElementById('weight').value,
+    height:document.getElementById('height').value,
+    disease:disease,
+    history:document.getElementById('history').value
+  };
+  localStorage.setItem('userProfile',JSON.stringify(profile));
+  const lang=document.getElementById('languageSelector').value;
+  const msg = lang==='hi'?'✅ प्रोफ़ाइल सहेजें!':lang==='pa'?'✅ ਪ੍ਰੋਫਾਈਲ ਸੇਵ ਹੋਇਆ!':'✅ Profile saved!';
+  alert(msg);
+  closeProfile();
+}
+
+const loadProfile = () => {
+  const profile=JSON.parse(localStorage.getItem('userProfile'));
+  if(!profile) return;
+  document.getElementById('name').value=profile.name;
+  document.getElementById('age').value=profile.age;
+  document.getElementById('weight').value=profile.weight;
+  document.getElementById('height').value=profile.height;
+  document.getElementById('history').value=profile.history;
+  if(["diabetes","heart","asthma","bp","kidney","obesity","cancer","arthritis","thyroid","cholesterol"].includes(profile.disease)){
+    document.getElementById('disease').value=profile.disease;
+    document.getElementById('otherLabel').style.display='none';
+    document.getElementById('otherDisease').style.display='none';
+  } else {
+    document.getElementById('disease').value='other';
+    document.getElementById('otherLabel').style.display='block';
+    document.getElementById('otherDisease').style.display='block';
+    document.getElementById('otherDisease').value=profile.disease;
+  }
+}
+
+const logout = () => {
+  localStorage.clear();
+  const lang=document.getElementById('languageSelector').value;
+  const msg = lang==='hi'?'✅ लॉग आउट!':lang==='pa'?'✅ ਲੌਗ ਆਉਟ!':'✅ Logged out!';
+  alert(msg);
+  location.reload();
+}
+
+function changeLanguage(){
+  const lang=document.getElementById('languageSelector').value;
+  const translations = {
+    hi:{
+      'Health Dashboard':'आरोग्य मित्र','Dashboard':'डैशबोर्ड','Symptom Checker':'लक्षण जाँच','Book Appointment':'अपॉइंटमेंट बुक करें',
+      'Find Hospitals':'अस्पताल खोजें','Reports':'रिपोर्ट्स','Medical Orders':'मेडिकल ऑर्डर','Logout':'लॉग आउट',
+      'Daily Health Tip':'दैनिक स्वास्थ्य सुझाव','Today’s Challenge':'आज की चुनौती','Reminders':'रिमाइंडर',
+      'Profile Information':'प्रोफ़ाइल जानकारी','Name':'नाम','Age':'आयु','Weight':'वज़न (kg)','Height':'ऊंचाई (cm)',
+      'Disease':'रोग','Enter Disease':'रोग दर्ज करें','Medical History':'चिकित्सा इतिहास','Save Profile':'प्रोफ़ाइल सहेजें'
+    },
+    pa:{
+      'Health Dashboard':'ਆਰੋਗਿਆ ਮਿਤਰ','Dashboard':'ਡੈਸ਼ਬੋਰਡ','Symptom Checker':'ਲੱਛਣ ਜਾਂਚ','Book Appointment':'ਅਪੋਇੰਟਮੈਂਟ ਬੁੱਕ ਕਰੋ',
+      'Find Hospitals':'ਹਸਪਤਾਲ ਲੱਭੋ','Reports':'ਰਿਪੋਰਟਾਂ','Medical Orders':'ਮੈਡੀਕਲ ਆਰਡਰ','Logout':'ਲੌਗ ਆਉਟ',
+      'Daily Health Tip':'ਦੈਨਿਕ ਸਿਹਤ ਸੁਝਾਅ','Today’s Challenge':'ਅੱਜ ਦੀ ਚੁਣੌਤੀ','Reminders':'ਰਿਮਾਈਂਡਰ',
+      'Profile Information':'ਪ੍ਰੋਫਾਈਲ ਜਾਣਕਾਰੀ','Name':'ਨਾਮ','Age':'ਉਮਰ','Weight':'ਵਜ਼ਨ (kg)','Height':'ਉਚਾਈ (cm)',
+      'Disease':'ਬੀਮਾਰੀ','Enter Disease':'ਬੀਮਾਰੀ ਦਰਜ ਕਰੋ','Medical History':'ਚਿਕਿਤਸਾ ਇਤਿਹਾਸ','Save Profile':'ਪ੍ਰੋਫਾਈਲ ਸੇਵ ਕਰੋ'
+    }
+  };
+  if(lang!=='en'){
+    document.getElementById('dashboardTitle').innerText=translations[lang]['Health Dashboard'];
+    document.querySelectorAll('[data-key]').forEach(el=>{
+      if(translations[lang][el.getAttribute('data-key')]) el.innerText=translations[lang][el.getAttribute('data-key')];
+    });
+    document.getElementById('logoutLink').innerText=translations[lang]['Logout'];
+  } else {
+    document.getElementById('dashboardTitle').innerText='Health Dashboard';
+    document.querySelectorAll('[data-key]').forEach(el=>{ el.innerText=el.getAttribute('data-key'); });
+    document.getElementById('logoutLink').innerText='Logout';
+  }
+}
+</script>
+
+</body>
+</html>

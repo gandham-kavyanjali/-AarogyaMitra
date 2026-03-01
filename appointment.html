@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Patient - Book Appointment</title>
+  <style>
+    body { font-family:'Poppins', sans-serif; background:#f5f5f5; margin:0; padding:0; text-align:center; color:#004d40; }
+    header { display:flex; justify-content:space-between; align-items:center; background: linear-gradient(90deg, #17a2b8, #138496); color:#fff; padding:20px; font-size:24px; font-weight:600; }
+    .lang-select { font-size:16px; padding:6px; border-radius:6px; border:none; width:120px; }
+    .container { margin:40px auto; max-width:500px; padding:30px; background:#fff; border-radius:12px; box-shadow:0 6px 12px rgba(0,0,0,0.1); }
+    input, select, button { width:100%; padding:12px; margin:10px 0; border:1px solid #ccc; border-radius:8px; }
+    button { background:#17a2b8; color:#fff; font-weight:bold; cursor:pointer; }
+    button:hover { background:#138496; }
+    #appointments { margin-top:20px; text-align:left; }
+  </style>
+</head>
+<body>
+
+<header>
+  📅 <span id="titleText">Patient Dashboard</span>
+  <select id="lang" class="lang-select" onchange="changeLanguage(this.value)">
+    <option value="en">English</option>
+    <option value="hi">हिन्दी</option>
+    <option value="te">తెలుగు</option>
+    <option value="pa">ਪੰਜਾਬੀ</option>
+  </select>
+</header>
+
+<div class="container">
+  <h3 id="bookTitle">Book Appointment</h3>
+  <input type="text" id="name" placeholder="Your Name">
+  <input type="email" id="email" placeholder="Your Email">
+  
+  <!-- 📞 Phone Input -->
+  <input type="tel" id="phone" placeholder="Your Phone Number">
+
+  <select id="doctor">
+    <option value="">-- Select Doctor --</option>
+    <option value="Ramesh">Dr. Ramesh - Cardiologist</option>
+    <option value="Kavya">Dr. Kavya - General Physician</option>
+    <option value="Anita">Dr. Anita - Dermatologist</option>
+  </select>
+
+  <input type="date" id="date">
+  <select id="time">
+    <option value="">-- Select Time --</option>
+    <option>09:00 AM</option><option>10:00 AM</option><option>11:00 AM</option>
+    <option>02:00 PM</option><option>03:00 PM</option><option>04:00 PM</option>
+  </select>
+
+  <button onclick="bookAppointment()" id="bookBtn">Book Now</button>
+  <p id="msg"></p>
+
+  <div id="appointments">
+    <h3 id="myApptTitle">My Appointments</h3>
+    <div id="myList">No appointments yet</div>
+  </div>
+</div>
+
+<script>
+  const translations = {
+    en: {
+      titleText: "Patient Dashboard",
+      bookTitle: "Book Appointment",
+      bookBtn: "Book Now",
+      myApptTitle: "My Appointments",
+      noAppointments: "No appointments yet",
+      successMsg: "✅ Appointment request sent!",
+      alertMsg: "Please fill all fields",
+      statusLabel: "Status",
+      pendingStatus: "Pending",
+      confirmedStatus: "Confirmed"
+    },
+    hi: {
+      titleText: "रोगी डैशबोर्ड",
+      bookTitle: "अपॉइंटमेंट बुक करें",
+      bookBtn: "बुक करें",
+      myApptTitle: "मेरी अपॉइंटमेंट्स",
+      noAppointments: "कोई अपॉइंटमेंट नहीं",
+      successMsg: "✅ अपॉइंटमेंट अनुरोध भेजा गया!",
+      alertMsg: "कृपया सभी फ़ील्ड भरें",
+      statusLabel: "स्थिति",
+      pendingStatus: "लंबित",
+      confirmedStatus: "पुष्टि की गई"
+    },
+    te: {
+      titleText: "రోగి డాష్‌బోర్డ్",
+      bookTitle: "నియామకం బుక్ చేయండి",
+      bookBtn: "బుక్ చేయండి",
+      myApptTitle: "నా అపాయింట్‌మెంట్లు",
+      noAppointments: "ఇంకా అపాయింట్‌మెంట్‌లు లేవు",
+      successMsg: "✅ అపాయింట్‌మెంట్ అభ్యర్థన పంపబడింది!",
+      alertMsg: "దయచేసి అన్ని ఫీల్డ్‌లు పూరించండి",
+      statusLabel: "స్థితి",
+      pendingStatus: "బాకీ",
+      confirmedStatus: "నిర్ధారించబడింది"
+    },
+    pa: {
+      titleText: "ਮਰੀਜ਼ ਡੈਸ਼ਬੋਰਡ",
+      bookTitle: "ਮੁਲਾਕਾਤ ਬੁੱਕ ਕਰੋ",
+      bookBtn: "ਹੁਣੇ ਬੁੱਕ ਕਰੋ",
+      myApptTitle: "ਮੇਰੀਆਂ ਮੁਲਾਕਾਤਾਂ",
+      noAppointments: "ਹਾਲੇ ਕੋਈ ਮੁਲਾਕਾਤ ਨਹੀਂ",
+      successMsg: "✅ ਮੁਲਾਕਾਤ ਦੀ ਬੇਨਤੀ ਭੇਜੀ ਗਈ!",
+      alertMsg: "ਕਿਰਪਾ ਕਰਕੇ ਸਾਰੇ ਖੇਤਰ ਭਰੋ",
+      statusLabel: "ਸਥਿਤੀ",
+      pendingStatus: "ਬਕਾਇਆ",
+      confirmedStatus: "ਪੁਸ਼ਟੀ ਕੀਤੀ ਗਈ"
+    }
+  };
+
+  function changeLanguage(lang) {
+    const t = translations[lang];
+    document.getElementById("titleText").innerText = t.titleText;
+    document.getElementById("bookTitle").innerText = t.bookTitle;
+    document.getElementById("bookBtn").innerText = t.bookBtn;
+    document.getElementById("myApptTitle").innerText = t.myApptTitle;
+    loadMyAppointments(); // apply translated status
+  }
+
+  function bookAppointment(){
+    const name = document.getElementById("name").value.trim();
+    const email = document.getElementById("email").value.trim();
+    let phone = document.getElementById("phone").value.trim(); 
+    const doctor = document.getElementById("doctor").value;
+    const date = document.getElementById("date").value;
+    const time = document.getElementById("time").value;
+    const lang = document.getElementById("lang").value;
+
+    const defaultPhone = "01765220131"; // ✅ Nabha Appointment Booking Number
+
+    if(!name || !email || !doctor || !date || !time){
+      alert(translations[lang].alertMsg);
+      return;
+    }
+
+    if(!phone) phone = defaultPhone; // ✅ Use Nabha number if not entered
+
+    let notifications = JSON.parse(localStorage.getItem("doctorNotifications") || "[]");
+    const appt = { patient:name, email, phone, doctor, date, time, status:"Pending" };
+    notifications.push(appt);
+    localStorage.setItem("doctorNotifications", JSON.stringify(notifications));
+    localStorage.setItem("currentPatient", name);
+
+    document.getElementById("msg").innerText = translations[lang].successMsg;
+    loadMyAppointments();
+  }
+
+  function loadMyAppointments(){
+    const patientName = localStorage.getItem("currentPatient");
+    let notifications = JSON.parse(localStorage.getItem("doctorNotifications") || "[]");
+    const myApps = notifications.filter(n => n.patient === patientName);
+    const lang = document.getElementById("lang").value;
+    const t = translations[lang];
+
+    const defaultPhone = "01765220131"; // ✅ fallback Nabha number
+
+    const listDiv = document.getElementById("myList");
+    if(myApps.length === 0){
+      listDiv.innerHTML = t.noAppointments;
+      return;
+    }
+
+    listDiv.innerHTML = myApps.map(a => {
+      const phoneToShow = a.phone ? a.phone : defaultPhone; // ✅ avoid undefined
+      return `<p>📅 ${a.date} ${a.time} with Dr. ${a.doctor} <br>
+       📞 Appiontment Booking Number: <a href="tel:${phoneToShow}">${phoneToShow}</a> <br>
+       ${t.statusLabel}: <b style="color:${a.status==='Confirmed'?'green':'orange'}">
+       ${a.status === "Confirmed" ? t.confirmedStatus : t.pendingStatus}
+       </b></p>`;
+    }).join("");
+  }
+
+  window.onload = function(){
+    document.getElementById("lang").value = "en";
+    changeLanguage("en");
+    loadMyAppointments();
+  };
+</script>
+
+</body>
+</html>

@@ -1,0 +1,532 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Symptom Checker</title>
+<style>
+body {
+    margin: 0;
+    padding: 0;
+    font-family: 'Poppins', sans-serif;
+    background: url('https://wallpapers.com/images/featured/medical-background-cjge7e89adg6ub8x.jpg') no-repeat center center fixed;
+    background-size: cover;
+    color: #333;
+}
+header { 
+    background-color: #17a2b8; 
+    color: white; 
+    padding: 15px; 
+    font-size: 20px; 
+    font-weight: bold; 
+    text-align: center; 
+    box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+}
+.container { 
+    max-width: 500px; 
+    margin: 30px auto; 
+    background: linear-gradient(135deg, rgba(255,255,255,0.95), rgba(220,240,255,0.95)); 
+    animation: gradientShift 15s ease infinite; 
+    background-size: 400% 400%; 
+    padding: 20px; 
+    border-radius: 12px; 
+    box-shadow: 0 4px 20px rgba(0,0,0,0.2); 
+    text-align: center; 
+    position: relative; 
+    transition: transform 0.3s;
+}
+@keyframes gradientShift {0% {background-position:0% 50%;} 50% {background-position:100% 50%;} 100% {background-position:0% 50%;}}
+.container img { width: 80px; margin-bottom: 15px; }
+
+.input-group {
+    display: flex;
+    align-items: center;
+    position: relative;
+}
+.input-group input { 
+    flex: 1;
+    padding: 10px 45px 10px 12px; 
+    margin: 8px 0; 
+    border-radius: 8px; 
+    font-size: 14px; 
+    border: 1px solid #ccc; 
+    transition: 0.3s;
+}
+.input-group input:focus { border: 2px solid #17a2b8; outline: none; }
+
+.mic-btn {
+    background: transparent;
+    border: none;
+    border-radius: 50%;
+    width: 40px;
+    height: 40px;
+    cursor: pointer;
+    transition: 0.3s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0;
+    position: absolute;
+    right: 8px;
+    top: 60%; /* slightly down */
+    transform: translateY(-50%);
+}
+.mic-btn:hover { background: rgba(23,162,184,0.1); } .mic-btn.listening { background: rgba(255,0,0,0.2); }
+
+.mic-btn img {
+    width: 18px;
+    height: 18px;
+}
+
+button.check-btn, button.back-btn { 
+    color: white; 
+    font-weight: bold; 
+    border: none; 
+    cursor: pointer; 
+    transition: 0.3s; 
+    padding: 10px; 
+    border-radius: 8px; 
+    width: 100%; 
+    font-size: 14px; 
+    margin-top: 8px; 
+    background-color: #17a2b8; 
+}
+button.check-btn:hover, button.back-btn:hover { transform: scale(1.05); }
+
+.result-card {
+    background: linear-gradient(135deg, #17a2b8, #6fc3df);
+    color: white;
+    padding: 20px;
+    border-radius: 12px;
+    margin-top: 15px;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+    animation: fadeIn 0.8s forwards;
+    text-align: left;
+}
+.result-card h3 { margin-top: 0; margin-bottom: 8px; font-size: 16px; }
+.result-card p { margin-bottom: 6px; font-size: 14px; }
+
+.video-btn {
+    background: rgba(255,255,255,0.3);
+    color: white;
+    border: none;
+    padding: 10px;
+    border-radius: 8px;
+    margin-top: 8px;
+    cursor: pointer;
+    width: 100%;
+    font-weight: bold;
+    transition: 0.3s;
+}
+.video-btn:hover { background: rgba(255,255,255,0.5); }
+
+.daily-tip {
+    margin-top: 15px; 
+    background: #17a2b8; 
+    color: white; 
+    padding: 12px; 
+    border-radius: 8px; 
+    font-weight: bold; 
+    cursor: pointer; 
+    transition: transform 0.3s, background 0.3s; 
+    font-size: 13px;
+}
+.daily-tip:hover { transform: scale(1.05); }
+
+footer { text-align:center; margin-top:20px; color:white; font-size:12px; }
+@keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+@media (max-width: 768px) { .container { margin: 15px; padding: 15px; } }
+
+/* small style for language selector area (non-invasive) */
+.lang-area { text-align: right; padding: 8px 12px 0 12px; }
+.lang-area select { padding:6px 8px; border-radius:6px; border:1px solid #ccc; }
+</style>
+</head>
+<body>
+
+<!-- Language Selector (non-invasive) -->
+<div class="lang-area">
+  🌐 <select id="languageSwitcher" aria-label="Select Language">
+    <option value="en">English</option>
+    <option value="hi">हिंदी</option>
+    <option value="pa">ਪੰਜਾਬੀ</option>
+  </select>
+</div>
+
+<header id="title">🩺 Symptom Checker</header>
+
+<div class="container">
+    <img src="https://cdn-icons-png.flaticon.com/512/2910/2910766.png" alt="Health Icon" id="healthIcon">
+    <h2 id="instruction">Enter Your Symptoms</h2>
+    
+    <div class="input-group">
+      <input type="text" id="symptomInput" placeholder="Enter your symptoms">
+      <button class="mic-btn" id="micBtn" title="Use voice input">
+        <img src="OIP.jpeg" alt="Mic" id="micIcon">
+      </button>
+    </div>
+
+    <button class="check-btn" id="checkBtn" onclick="checkSymptoms()">Check</button>
+
+    <div class="result" id="resultBox"></div>
+    <button id="backBtn" class="back-btn" style="display:none;" onclick="resetInput()">← Back</button>
+
+    <div class="daily-tip" id="dailyTip"></div>
+</div>
+
+<script>
+// ------------------------- TRANSLATIONS -------------------------
+const translations = {
+  en: {
+    title: "🩺 Symptom Checker",
+    instruction: "Enter Your Symptoms",
+    placeholder: "Enter your symptoms",
+    check: "Check",
+    back: "← Back",
+    unknownTitle: "❓ Unknown Condition",
+    unknownMsg: "Sorry, no clear match found for the symptoms entered.",
+    consult: "⚠️ Please consult a doctor if symptoms persist or worsen.",
+    watchVideo: "▶ Watch Video",
+    micAlt: "Mic",
+    speechError: "Speech recognition not supported or mic permission denied.",
+    dailyTips: [
+      "Drink 8 glasses water 💧",
+      "Walk 30 min 🚶",
+      "Eat fruits & veggies 🥦🍎",
+      "Sleep 7-8 hrs 🛌",
+      "Deep breathing 🧘",
+      "Wash hands 🧼",
+      "Limit sugar 🍬",
+      "Screen break every hr 🖥️"
+    ],
+    footer: "© 2025 Symptom Checker | Developed by You | For educational purposes"
+  },
+  hi: {
+    title: "🩺 लक्षण जांचकर्ता",
+    instruction: "अपने लक्षण दर्ज करें",
+    placeholder: "अपने लक्षण दर्ज करें",
+    check: "जांचें",
+    back: "← वापस",
+    unknownTitle: "❓ अज्ञात स्थिति",
+    unknownMsg: "क्षमा करें, दर्ज किए गए लक्षणों के लिए कोई स्पष्ट मिलान नहीं मिला।",
+    consult: "⚠️ यदि लक्षण बने रहते हैं या बिगड़ते हैं तो कृपया डॉक्टर से परामर्श करें।",
+    watchVideo: "▶ वीडियो देखें",
+    micAlt: "माइक",
+    speechError: "स्पीच रिकग्निशन समर्थित नहीं है या माइक्रोफ़ोन अनुमति नहीं मिली।",
+    dailyTips: [
+      "8 ग्लास पानी पिएँ 💧",
+      "30 मिनट चलें 🚶",
+      "फल और सब्जियाँ खाएँ 🥦🍎",
+      "7-8 घंटे सोएँ 🛌",
+      "गहरी साँस लें 🧘",
+      "हाथ धोएँ 🧼",
+      "चीनी कम करें 🍬",
+      "हर घंटे स्क्रीन ब्रेक लें 🖥️"
+    ],
+    footer: "© 2025 Symptom Checker | आपके लिए विकसित | शैक्षिक उद्देश्यों के लिए"
+  },
+  pa: {
+    title: "🩺 ਲੱਛਣ ਚੈੱਕਰ",
+    instruction: "ਆਪਣੇ ਲੱਛਣ ਦਰਜ ਕਰੋ",
+    placeholder: "ਆਪਣੇ ਲੱਛਣ ਦਰਜ ਕਰੋ",
+    check: "ਜਾਂਚ ਕਰੋ",
+    back: "← ਵਾਪਸ",
+    unknownTitle: "❓ ਅਣਜਾਣ ਹਾਲਤ",
+    unknownMsg: "ਮਾਫ਼ ਕਰਨਾ, ਦਰਜ ਕੀਤੇ ਲੱਛਣਾਂ ਲਈ ਕੋਈ ਸਪਸ਼ਟ ਮੇਲ ਨਹੀਂ ਮਿਲਿਆ।",
+    consult: "⚠️ ਜੇ ਲੱਛਣ ਜਾਰੀ ਰਹਿੰਦੇ ਹਨ ਜਾਂ ਖਰਾਬ ਹੋ ਜਾਂਦੇ ਹਨ ਤਾਂ ਕਿਰਪਾ ਕਰਕੇ ਡਾਕਟਰ ਨਾਲ ਸਲਾਹ ਕਰੋ।",
+    watchVideo: "▶ ਵੀਡੀਓ ਵੇਖੋ",
+    micAlt: "ਮਾਈਕ",
+    speechError: "ਸਪੀਚ ਰਿਕਗਨਿਸ਼ਨ ਸਹਿਯੋਗ ਨਹੀਂ ਕਰਦਾ ਜਾਂ ਮਾਇਕ ਦੀ ਆਗਿਆ ਨਹੀਂ ਮਿਲੀ।",
+    dailyTips: [
+      "8 ਗਿਲਾਸ ਪਾਣੀ ਪੀਓ 💧",
+      "30 ਮਿੰਟ ਤੱਕ ਚਲੋ 🚶",
+      "ਫਲ ਅਤੇ ਸਬਜ਼ੀਆਂ ਖਾਓ 🥦🍎",
+      "7-8 ਘੰਟੇ ਸੌਵੋ 🛌",
+      "ਗਹਿਰੀ ਸਾਹ ਲਓ 🧘",
+      "ਹੱਥ ਧੋਵੋ 🧼",
+      "ਚੀਨੀ ਘੱਟ ਕਰੋ 🍬",
+      "ਹਰ ਘੰਟੇ ਸਕਰੀਨ ਬ੍ਰੇਕ ਲਵੋ 🖥️"
+    ],
+    footer: "© 2025 Symptom Checker | ਤੁਹਾਡੇ ਲਈ ਵਿਕਸਤ | ਸਿੱਖਿਆ ਲਈ"
+  }
+};
+
+// disease-specific translations keyed by English disease name (exact match)
+translations.hi.diseases = {
+  "Fever": {
+    name: "बुखार",
+    info: "बुखार आमतौर पर संक्रमण का संकेत है। हाइड्रेटेड रहें और आराम करें।",
+    remedies: "💧 गर्म तरल पिएँ<br>💊 आवश्यक हो तो पैरासिटामॉल लें<br>🌡 तापमान मॉनिटर करें"
+  },
+  "Common Cold": {
+    name: "सर्दी-जुकाम",
+    info: "सर्दी अक्सर वायरल संक्रमण के कारण होती है।",
+    remedies: "🍯 गर्म पानी और शहद पिएँ<br>🛌 पर्याप्त आराम करें<br>♨️ भाप लें"
+  },
+  "Flu": {
+    name: "फ्लू",
+    info: "फ्लू एक वायरल संक्रमण है जिसमें बुखार और बदन दर्द होते हैं।",
+    remedies: "💊 आराम करें, हाइड्रेट रखें, और दवा लें यदि निर्देशित हो"
+  },
+  "COVID-like": {
+    name: "कोविड-जैसे लक्षण",
+    info: "लक्षण संभावित COVID-19 से मेल खाते हैं। कृपया तुरंत जाँच करवाएँ।",
+    remedies: "😷 अलग रहें<br>💧 तरल पदार्थ पिएँ<br>📞 तुरंत डॉक्टर से संपर्क करें"
+  },
+  "Dengue": {
+    name: "डेंगू",
+    info: "डेंगू उच्च बुखार, जोड़ दर्द और दाने का कारण बन सकता है। डॉक्टर से मिलें।",
+    remedies: "💧 आराम और हाइड्रेटेड रहें<br>🚫 एस्पिरिन से बचें<br>📞 तुरंत डॉक्टर से संपर्क करें"
+  },
+  "Typhoid": {
+    name: "टाइफाइड",
+    info: "टाइफाइड एक बैक्टीरियल संक्रमण है, एंटीबायोटिक्स की आवश्यकता होती है।",
+    remedies: "💧 तरल पदार्थ पिएँ<br>🛌 आराम करें<br>📞 डॉक्टर से इलाज के लिए संपर्क करें"
+  }
+};
+translations.pa.diseases = {
+  "Fever": {
+    name: "ਬੁਖਾਰ",
+    info: "ਬੁਖਾਰ ਆਮ ਤੌਰ 'ਤੇ ਸੰਕ੍ਰਮਣ ਦਾ ਇਸ਼ਾਰਾ ਹੁੰਦਾ ਹੈ। ਹਾਈਡਰੇਟ ਰਹੋ ਅਤੇ ਆਰਾਮ ਕਰੋ।",
+    remedies: "💧 ਗਰਮ ਤਰਲ ਪੀਓ<br>💊 ਜ਼ਰੂਰਤ ਹੋਵੇ ਤਾਂ ਪੈਰਾਸਿਟਾਮਾਲ ਲਓ<br>🌡 ਤਾਪਮਾਨ ਨਿਰੀਂਤਰ ਕਰੋ"
+  },
+  "Common Cold": {
+    name: "ਸਿਆਲ-ਜ਼ੁਕਾਮ",
+    info: "ਸਿਆਲ ਆਮ ਤੌਰ 'ਤੇ ਵਾਇਰਲ ਸੰਕ੍ਰਮਣ ਕਾਰਨ ਹੁੰਦਾ ਹੈ।",
+    remedies: "🍯 ਗਰਮ ਪਾਣੀ ਅਤੇ ਸ਼ਹਿਦ ਪੀਓ<br>🛌 ਪੂਰਾ ਆਰਾਮ ਕਰੋ<br>♨️ ਭਾਫ਼ ਲਓ"
+  },
+  "Flu": {
+    name: "ਫਲੂ",
+    info: "ਫਲੂ ਇੱਕ ਵਾਇਰਲ ਇਨਫੈਕਸ਼ਨ ਹੈ ਜਿਸ ਵਿੱਚ ਬੁਖਾਰ ਅਤੇ ਦੇਹ ਦਰਦ ਹੁੰਦੇ ਹਨ।",
+    remedies: "💊 ਆਰਾਮ ਕਰੋ, ਹਾਈਡਰੇਟ ਰਹੋ, ਜੇ ਲੋੜ ਹੋਵੇ ਤਾਂ ਦਵਾਈ ਲਵੋ"
+  },
+  "COVID-like": {
+    name: "ਕੋਵਿਡ-ਜਿਹੇ ਲੱਛਣ",
+    info: "ਲੱਛਣ ਸੰਭਵ COVID-19 ਨਾਲ ਮਿਲਦੇ-ਜੁਲਦੇ ਹਨ। ਕਿਰਪਾ ਕਰਕੇ ਤੁਰੰਤ ਟੈਸਟ ਕਰੋ।",
+    remedies: "😷 ਖੁਦ ਨੂੰ ਆਈਸੋਲੇਟ ਕਰੋ<br>💧 ਤਰਲ ਪੀਓ<br>📞 ਤੁਰੰਤ ਡਾਕਟਰ ਨਾਲ ਸਲਾਹ ਕਰੋ"
+  },
+  "Dengue": {
+    name: "ਡੈਂਗੀ",
+    info: "ਡੈਂਗੀ ਉੱਚ ਬੁਖਾਰ, ਜੋੜ ਦਰਦ ਅਤੇ ਦਾਣਿਆਂ ਵਾਲੀ ਬਿਮਾਰੀ ਹੈ। ਡਾਕਟਰ ਕੋਲ ਜਾਓ।",
+    remedies: "💧 ਆਰਾਮ ਅਤੇ ਹਾਈਡਰੇਟ ਰਹੋ<br>🚫 ਐਸਪ੍ਰਿਨ ਤੋਂ ਬਚੋ<br>📞 ਤੁਰੰਤ ਡਾਕਟਰ ਨਾਲ ਸਲਾਹ ਕਰੋ"
+  },
+  "Typhoid": {
+    name: "ਟਾਈਫਾਇਡ",
+    info: "ਟਾਈਫਾਇਡ ਬੈਕਟੀਰੀਅਲ ਇਨਫੈਕਸ਼ਨ ਹੈ ਜਿਸ ਲਈ ਐਂਟੀਬਾਇਓਟਿਕ ਜ਼ਰੂਰੀ ਹਨ।",
+    remedies: "💧 ਤਰਲ ਪੀਓ<br>🛌 ਆਰਾਮ ਕਰੋ<br>📞 ਇਲਾਜ ਲਈ ਡਾਕਟਰ ਨਾਲ ਸਲਾਹ ਕਰੋ"
+  }
+};
+
+// ------------------------- ORIGINAL DISEASE DATA (unchanged features) -------------------------
+const diseaseData = [
+    { name: "Fever", keywords: ["headache","body pain","tiredness"], info: "Fever is usually a sign of infection. Stay hydrated and rest.", remedies: "💧 Drink warm fluids<br>💊 Take paracetamol if needed<br>🌡 Monitor temperature", emoji: "🤒", video: "https://www.youtube.com/watch?v=lcQfIg9rKBc" },
+    { name: "Common Cold", keywords: ["cough","cold","runny","throat","sneezing"], info: "Cold is often caused by viral infections.", remedies: "🍯 Drink warm water with honey<br>🛌 Get enough rest<br>♨️ Use steam inhalation", emoji: "🤧", video: "https://www.youtube.com/watch?v=BafXn6YuBsM" },
+    { name: "Flu", keywords: ["fever","cough","body pain","fatigue","sore throat"], info: "Flu is a viral infection with fever, cough, and body aches.", remedies: "💊 Rest, hydrate, take medications if prescribed", emoji: "🤒", video: "https://www.youtube.com/watch?v=O5CGJRuosOQ" },
+    { name: "COVID-like", keywords: ["fever","cough","loss of taste","loss of smell"], info: "Symptoms match possible COVID-19. Please get tested immediately.", remedies: "😷 Isolate yourself<br>💧 Drink fluids<br>📞 Consult a doctor ASAP", emoji: "🦠", video: "https://www.youtube.com/watch?v=QmVlckKeZqc" },
+    { name: "Dengue", keywords: ["high fever","rash","joint pain","nausea"], info: "Dengue can cause high fever, joint pain, and rash. See a doctor.", remedies: "💧 Rest and stay hydrated<br>🚫 Avoid aspirin<br>📞 Consult a doctor immediately", emoji: "🦟", video: "" },
+    { name: "Typhoid", keywords: ["high fever","abdominal pain","weakness","constipation"], info: "Typhoid is a bacterial infection requiring antibiotics.", remedies: "💧 Drink fluids<br>🛌 Rest<br>📞 Consult a doctor for treatment", emoji: "🧫", video: "" }
+];
+
+// keep last matched disease names to re-render on language change
+let lastMatchedNames = null;
+let currentLang = 'en';
+
+// ------------------------- MIC / Speech Recognition (unchanged) -------------------------
+const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+if (SpeechRecognition) {
+    const recognition = new SpeechRecognition();
+    recognition.lang = "en-US";
+    recognition.interimResults = false;
+    recognition.maxAlternatives = 1;
+
+    const micBtn = document.getElementById("micBtn");
+    const inputBox = document.getElementById("symptomInput");
+
+    micBtn.addEventListener("click", () => {
+        try {
+          recognition.start();
+          micBtn.classList.add("listening");
+        } catch(err){
+          console.warn("Recognition start error:", err);
+        }
+    });
+
+    recognition.onresult = (event) => {
+        const transcript = event.results[0][0].transcript;
+        inputBox.value = transcript;
+    };
+
+    recognition.onspeechend = () => {
+        recognition.stop();
+        micBtn.classList.remove("listening");
+    };
+
+    recognition.onerror = (event) => {
+        console.error("Speech recognition error:", event.error);
+        micBtn.classList.remove("listening");
+        alert(translations[currentLang].speechError);
+    };
+} else {
+    // If not supported, do not break page - just notify user in their language
+    // we will show alert in default language
+    // do nothing here; the first attempt will show alert through recognition.onerror fallback if used
+}
+
+// ------------------------- DAILY TIPS (translated per language) -------------------------
+let tipIndex = Math.floor(Math.random() * translations.en.dailyTips.length);
+const dailyTipEl = document.getElementById("dailyTip");
+function showDailyTip() {
+  const tips = translations[currentLang].dailyTips || translations.en.dailyTips;
+  if(tips && tips.length>0){
+    dailyTipEl.innerText = tips[tipIndex % tips.length];
+  }
+}
+showDailyTip();
+setInterval(() => { tipIndex = (tipIndex + 1); showDailyTip(); }, 5000);
+dailyTipEl.onclick = () => { tipIndex = (tipIndex + 1); showDailyTip(); };
+
+// ------------------------- SYMPTOM CHECK (uses diseaseData but renders translations) -------------------------
+function checkSymptoms() {
+    const input = document.getElementById("symptomInput").value.toLowerCase();
+    if(!input || input.trim().length === 0){
+      // nothing entered - you can decide to show a message; we keep same behavior as before
+      return;
+    }
+
+    // try to match keywords (keeps original logic but also checks substring to be robust)
+    const inputSymptoms = input.split(/,|\s+/).map(s => s.trim()).filter(Boolean);
+    let matched = [];
+
+    diseaseData.forEach(disease => {
+        // original-style exact token match OR substring match for multi-word keywords
+        const matches = disease.keywords.filter(k => {
+            const kLower = k.toLowerCase();
+            return inputSymptoms.includes(kLower) || input.includes(kLower);
+        });
+        if(matches.length > 0){
+            matched.push(disease.name);
+        }
+    });
+
+    // render based on matches
+    if(matched.length > 0){
+        renderResults(matched);
+        lastMatchedNames = matched.slice(); // copy
+    } else {
+        renderUnknown();
+        lastMatchedNames = null;
+    }
+
+    document.getElementById("backBtn").style.display = "block";
+}
+
+function renderResults(matchedNames){
+    let resultHTML = "";
+    matchedNames.forEach(name => {
+        const disease = diseaseData.find(d => d.name === name);
+        if(!disease) return;
+        // get translations if available
+        let dName = disease.name;
+        let dInfo = disease.info;
+        let dRemedies = disease.remedies;
+        if(translations[currentLang] && translations[currentLang].diseases && translations[currentLang].diseases[disease.name]){
+            const td = translations[currentLang].diseases[disease.name];
+            if(td.name) dName = td.name;
+            if(td.info) dInfo = td.info;
+            if(td.remedies) dRemedies = td.remedies;
+        }
+        // build card HTML (video button label translated)
+        const videoPart = disease.video ? `<button class="video-btn" onclick="window.open('${disease.video}','_blank')">${translations[currentLang].watchVideo}</button>` : "";
+        resultHTML += `
+            <div class="result-card">
+                <h3>🧾 ${dName} ${disease.emoji}</h3>
+                <p><strong>ℹ️ ${ translations[currentLang].instruction.includes("Symptoms") ? "Information" : "Information" }:</strong> ${dInfo}</p>
+                <p><strong>💡 Remedies:</strong><br>${dRemedies}</p>
+                ${videoPart}
+            </div>`;
+    });
+
+    const resultBox = document.getElementById("resultBox");
+    resultBox.innerHTML = resultHTML;
+    resultBox.style.opacity = 0;
+    void resultBox.offsetWidth;
+    resultBox.style.animation = "fadeIn 0.8s forwards";
+}
+
+function renderUnknown(){
+    const resultBox = document.getElementById("resultBox");
+    resultBox.innerHTML = `
+    <div class="result-card">
+        <h3>${translations[currentLang].unknownTitle}</h3>
+        <p>${translations[currentLang].unknownMsg}</p>
+        <p>${translations[currentLang].consult}</p>
+    </div>`;
+    resultBox.style.opacity = 0;
+    void resultBox.offsetWidth;
+    resultBox.style.animation = "fadeIn 0.8s forwards";
+}
+
+function resetInput() {
+    document.getElementById("symptomInput").value = "";
+    document.getElementById("resultBox").innerHTML = "";
+    document.getElementById("backBtn").style.display = "none";
+    lastMatchedNames = null;
+}
+
+// ------------------------- LANGUAGE SWITCHING (non-invasive) -------------------------
+function applyStaticTranslations(lang){
+  currentLang = lang;
+  // static UI bits
+  document.getElementById("title").innerText = translations[lang].title;
+  document.getElementById("instruction").innerText = translations[lang].instruction;
+  document.getElementById("symptomInput").placeholder = translations[lang].placeholder;
+  document.getElementById("checkBtn").innerText = translations[lang].check;
+  document.getElementById("backBtn").innerText = translations[lang].back;
+  // mic alt
+  const micIcon = document.getElementById("micIcon");
+  if(micIcon) micIcon.alt = translations[lang].micAlt;
+  // footer (update text only - footer element is at bottom)
+  const footerEl = document.querySelector('footer');
+  if(footerEl) footerEl.innerText = translations[lang].footer;
+  // daily tip update
+  showDailyTip();
+  // re-render any existing results in selected language
+  if(lastMatchedNames && lastMatchedNames.length>0){
+    renderResults(lastMatchedNames);
+  } else if(document.getElementById("resultBox").innerHTML && (!lastMatchedNames || lastMatchedNames.length === 0)){
+    // If unknown previously shown, re-render unknown in new language
+    // We check content existence - safe fallback
+    renderUnknown();
+  }
+}
+
+// Listen for change
+document.getElementById("languageSwitcher").addEventListener("change",(e) => {
+  const lang = e.target.value;
+  applyStaticTranslations(lang);
+  try { localStorage.setItem('symptom-lang', lang); } catch(e){}
+});
+
+// on page load, set language from storage or default
+document.addEventListener('DOMContentLoaded', () => {
+  try {
+    const saved = localStorage.getItem('symptom-lang');
+    if(saved && translations[saved]) {
+      document.getElementById("languageSwitcher").value = saved;
+      applyStaticTranslations(saved);
+    } else {
+      applyStaticTranslations(currentLang);
+    }
+  } catch(e) {
+    applyStaticTranslations(currentLang);
+  }
+});
+</script>
+
+<footer style="text-align:center; padding:15px; background: rgba(0, 0, 0, 0.6); color:white; position:fixed; width:100%; bottom:0; font-family: 'Poppins', sans-serif;">
+    <!-- footer text replaced by script translations on load -->
+    © 2025 Symptom Checker | Developed by You | For educational purposes
+</footer>
+
+</body>
+</html>

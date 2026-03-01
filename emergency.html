@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Emergency Contacts & SOS</title>
+<style>
+body { font-family:'Poppins',sans-serif; background:#f8f9fa; margin:0; padding:0; display:flex; justify-content:center; align-items:center; height:100vh; }
+.container { background:white; padding:30px; border-radius:12px; box-shadow:0 5px 20px rgba(0,0,0,0.2); width:90%; max-width:400px; text-align:center; }
+h2 { color:#17a2b8; margin-bottom:20px; }
+ul { list-style:none; padding:0; margin-bottom:20px; }
+ul li { margin:10px 0; font-size:18px; }
+ul li a { text-decoration:none; color:#007bff; }
+button { padding:10px 20px; background:#17a2b8; color:white; border:none; border-radius:6px; font-size:16px; cursor:pointer; }
+button:hover { background:#138496; }
+#emStatus { margin-top:15px; font-weight:bold; color:#555; }
+#langSelector { margin-bottom:15px; padding:6px 12px; border-radius:6px; border:1px solid #ccc; font-size:14px; }
+</style>
+</head>
+<body>
+
+<div class="container">
+  <select id="langSelector">
+    <option value="en">English</option>
+    <option value="hi">हिंदी</option>
+    <option value="pa">ਪੰਜਾਬੀ</option>
+  </select>
+
+  <h2 id="title">🚨 Emergency Contacts</h2>
+  <ul>
+    <li id="ambulance"><strong>Ambulance:</strong> <a href="tel:108">108</a></li>
+    <li id="police"><strong>Police:</strong> <a href="tel:100">100</a></li>
+    <li id="fire"><strong>Fire:</strong> <a href="tel:101">101</a></li>
+    <li id="nabha"><strong>Nabha Emergency:</strong> <a href="tel:01765234567">01765-234567</a></li>
+  </ul>
+  <button id="sendEmergencyBtn">Send Emergency (SOS)</button>
+  <div id="emStatus">No emergency sent yet.</div>
+</div>
+
+<script>
+// --- Translations ---
+const translations = {
+  hi: {
+    'title':'🚨 आपातकालीन संपर्क',
+    'ambulance':'एम्बुलेंस:',
+    'police':'पुलिस:',
+    'fire':'अग्निशमन:',
+    'nabha':'नाभा आपातकालीन:',
+    'sendBtn':'आपातकालीन भेजें (SOS)',
+    'noSOS':'कोई आपातकालीन नहीं भेजा गया।',
+    'sosSent':'🚨 SOS भेजा गया! आपका स्थान रिकॉर्ड कर लिया गया।',
+    'sosTime':'SOS भेजा गया '
+  },
+  pa: {
+    'title':'🚨 ਐਮਰਜੈਂਸੀ ਸੰਪਰਕ',
+    'ambulance':'ਐਂਬੁਲੈਂਸ:',
+    'police':'ਪੁਲਿਸ:',
+    'fire':'ਅੱਗ:',
+    'nabha':'ਨਾਬ੍ਹਾ ਐਮਰਜੈਂਸੀ:',
+    'sendBtn':'ਐਮਰਜੈਂਸੀ ਭੇਜੋ (SOS)',
+    'noSOS':'ਕੋਈ ਐਮਰਜੈਂਸੀ ਨਹੀਂ ਭੇਜੀ ਗਈ।',
+    'sosSent':'🚨 SOS ਭੇਜਿਆ ਗਿਆ! ਤੁਹਾਡਾ ਸਥਾਨ ਦਰਜ ਕੀਤਾ ਗਿਆ ਹੈ।',
+    'sosTime':'SOS ਭੇਜਿਆ ਗਿਆ '
+  },
+  en: {
+    'title':'🚨 Emergency Contacts',
+    'ambulance':'Ambulance:',
+    'police':'Police:',
+    'fire':'Fire:',
+    'nabha':'Nabha Emergency:',
+    'sendBtn':'Send Emergency (SOS)',
+    'noSOS':'No emergency sent yet.',
+    'sosSent':'🚨 SOS Sent! Your location has been captured.',
+    'sosTime':'SOS Sent at '
+  }
+};
+
+// --- Language change ---
+document.getElementById('langSelector').addEventListener('change', () => {
+  const lang = document.getElementById('langSelector').value;
+  const t = translations[lang];
+  document.getElementById('title').innerText = t['title'];
+  document.getElementById('ambulance').innerHTML = `<strong>${t['ambulance']}</strong> <a href="tel:108">108</a>`;
+  document.getElementById('police').innerHTML = `<strong>${t['police']}</strong> <a href="tel:100">100</a>`;
+  document.getElementById('fire').innerHTML = `<strong>${t['fire']}</strong> <a href="tel:101">101</a>`;
+  document.getElementById('nabha').innerHTML = `<strong>${t['nabha']}</strong> <a href="tel:01765234567">01765-234567</a>`;
+  document.getElementById('sendEmergencyBtn').innerText = t['sendBtn'];
+  document.getElementById('emStatus').innerText = t['noSOS'];
+});
+
+// --- SOS Button ---
+document.getElementById('sendEmergencyBtn').addEventListener('click', () => {
+  const lang = document.getElementById('langSelector').value;
+  const t = translations[lang];
+
+  if (!("geolocation" in navigator)) {
+    alert("Geolocation not supported in this browser.");
+    return;
+  }
+
+  navigator.geolocation.getCurrentPosition(
+    pos => {
+      const payload = {
+        latitude: pos.coords.latitude,
+        longitude: pos.coords.longitude,
+        timestamp: new Date().toISOString()
+      };
+      console.log("Emergency Payload:", payload);
+      document.getElementById('emStatus').innerText = t['sosTime'] + payload.timestamp;
+      alert(t['sosSent']);
+
+      // --- Send SMS using SMS URL ---
+      const contacts = ["+911765234567", "+911122334455"]; // Add more numbers
+      const message = `🚨 Emergency! I need help. My location: https://maps.google.com/?q=${payload.latitude},${payload.longitude}`;
+      
+      contacts.forEach(number => {
+        const smsUrl = `sms:${number}?body=${encodeURIComponent(message)}`;
+        window.open(smsUrl, '_blank');
+      });
+    },
+    err => {
+      if (err.code === 1) {
+        document.getElementById('emStatus').innerText = "⚠️ Please enable location in your browser to send SOS!";
+        alert("Location access denied. Please allow location permissions to send your emergency location.");
+      } else if (err.code === 2) {
+        document.getElementById('emStatus').innerText = "⚠️ Location unavailable. Check your device GPS.";
+        alert("Location unavailable. Make sure your GPS/location service is turned on.");
+      } else if (err.code === 3) {
+        document.getElementById('emStatus').innerText = "⚠️ Location request timed out.";
+        alert("Location request timed out. Try again.");
+      } else {
+        document.getElementById('emStatus').innerText = "⚠️ Could not get location.";
+        alert("Could not get location: " + (err.message || err.code));
+      }
+    }
+  );
+});
+</script>
+
+</body>
+</html>

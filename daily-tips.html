@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Daily Health Tips</title>
+<style>
+  body { 
+    font-family:'Poppins',sans-serif; 
+    margin:20px; 
+    background:#f5f5f5; 
+    color:#004d40;
+  }
+
+  h1 { 
+    background: linear-gradient(90deg, #17a2b8, #138496);
+    color:white; 
+    text-align:center; 
+    padding:20px; 
+    border-radius:15px;
+    box-shadow:0 4px 12px rgba(0,0,0,0.2);
+    font-size:28px;
+    margin-bottom:30px;
+  }
+
+  select#langSelector {
+    display:block;
+    margin:0 auto 25px auto;
+    padding:8px 12px;
+    border-radius:8px;
+    border:1px solid #138496;
+    font-weight:600;
+    cursor:pointer;
+  }
+
+  ul { 
+    max-width:700px; 
+    margin:0 auto; 
+    background:#fff; 
+    padding:25px; 
+    border-radius:18px; 
+    box-shadow:0 6px 18px rgba(0,0,0,0.12);
+    transition: all 0.3s ease;
+  }
+
+  li { 
+    padding:12px 15px; 
+    border-bottom:1px solid #ddd; 
+    font-size:18px; 
+    transition: all 0.3s ease;
+    border-radius:10px;
+  }
+  li:last-child { border-bottom:none; }
+
+  li:hover { 
+    background: rgba(23,162,184,0.1);
+    transform: translateX(2px);
+  }
+
+  @media(max-width:600px){
+    h1 { font-size:22px; padding:15px; }
+    ul { padding:20px; }
+    li { font-size:16px; padding:10px; }
+    select#langSelector { width:90%; }
+  }
+</style>
+</head>
+<body>
+
+<h1>📋 Daily Health Tips</h1>
+<select id="langSelector">
+  <option value="en">English</option>
+  <option value="hi">Hindi</option>
+  <option value="pa">Punjabi</option>
+</select>
+<ul id="tipsList"></ul>
+
+<script>
+// Sample tips in multiple languages
+const tipsData = {
+  en:[
+    "💧 Drink 8 glasses of water daily.",
+    "🥗 Eat more fruits and vegetables.",
+    "🏃 Exercise for at least 30 minutes.",
+    "🛌 Get 7-8 hours of sleep.",
+    "🧘 Practice mindfulness and meditation."
+  ],
+  hi:[
+    "💧 रोज़ाना 8 गिलास पानी पिएँ।",
+    "🥗 अधिक फल और सब्जियाँ खाएँ।",
+    "🏃 कम से कम 30 मिनट व्यायाम करें।",
+    "🛌 7-8 घंटे की नींद लें।",
+    "🧘 ध्यान और मेडिटेशन का अभ्यास करें।"
+  ],
+  pa:[
+    "💧 ਹਰ ਰੋਜ਼ 8 ਗਿਲਾਸ ਪਾਣੀ ਪੀਓ।",
+    "🥗 ਜ਼ਿਆਦਾ ਫਲ ਅਤੇ ਸਬਜ਼ੀਆਂ ਖਾਓ।",
+    "🏃 ਘੱਟੋ-ਘੱਟ 30 ਮਿੰਟ ਵਰਜ਼ਿਸ਼ ਕਰੋ।",
+    "🛌 7-8 ਘੰਟੇ ਦੀ ਨੀਂਦ ਲਓ।",
+    "🧘 ਧਿਆਨ ਅਤੇ ਮੈਡੀਟੇਸ਼ਨ ਅਭਿਆਸ ਕਰੋ।"
+  ]
+};
+
+// Load last selected language
+let currentLang = localStorage.getItem('tipsLang') || 'en';
+document.getElementById('langSelector').value = currentLang;
+
+// Function to render tips
+function renderTips(lang){
+  const ul = document.getElementById('tipsList');
+  ul.innerHTML = '';
+  tipsData[lang].forEach(tip => {
+    const li = document.createElement('li');
+    li.textContent = tip;
+    ul.appendChild(li);
+  });
+}
+
+// Initial render
+renderTips(currentLang);
+
+// Change language
+document.getElementById('langSelector').addEventListener('change', function(){
+  currentLang = this.value;
+  localStorage.setItem('tipsLang', currentLang);
+  renderTips(currentLang);
+});
+</script>
+
+</body>
+</html>

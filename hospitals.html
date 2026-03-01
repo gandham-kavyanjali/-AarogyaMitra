@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Dynamic Hospital & City Finder</title>
+
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      text-align: center;
+      margin: 0;
+      background: #ffffff; /* remaining body white */
+      color: #333;
+    }
+
+    /* Header only color */
+    h1 {
+      background-color: #17a2b8; /* header background */
+      color: white; /* header text color */
+      margin: 0;
+      padding: 20px 0;
+      font-size: 32px;
+    }
+
+    #searchBox {
+      padding: 12px;
+      width: 320px;
+      font-size: 16px;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+      margin-top: 20px;
+    }
+
+    button {
+      padding: 12px 20px;
+      margin: 8px 5px;
+      font-size: 16px;
+      border: none;
+      background: #17a2b8;
+      color: white;
+      border-radius: 6px;
+      cursor: pointer;
+    }
+
+    button:hover {
+      background: #17a2b8;
+    }
+
+    #micBtn {
+      background: #17a2b8;
+      padding: 10px 15px;
+    }
+
+    #micBtn:hover {
+      background: #17a2b8;
+    }
+
+    #micBtn img {
+      width: 24px;
+      height: 24px;
+      vertical-align: middle;
+    }
+
+    #map {
+      margin-top: 20px;
+    }
+
+    iframe {
+      border: 0;
+      border-radius: 10px;
+      width: 90%;
+      max-width: 900px;
+      height: 500px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+    }
+  </style>
+</head>
+<body>
+
+  <!-- ✅ Header with only colored background -->
+  <h1>Find Nearby Hospitals</h1>
+
+  <!-- Search Box + Buttons -->
+  <input type="text" id="searchBox" placeholder="Enter hospital or city...">
+  <button onclick="loadMap()">Search</button>
+
+  <!-- 🎤 Mic Button with Custom Image -->
+  <button id="micBtn" onclick="startVoiceSearch()">
+    <img src="https://img.icons8.com/ios-filled/50/ffffff/microphone.png" alt="Mic">
+  </button>
+
+  <!-- Map -->
+  <div id="map">
+    <iframe 
+      id="mapFrame"
+      src="https://www.google.com/maps?q=Hospitals+in+Kakinada&output=embed" 
+      allowfullscreen="" 
+      loading="lazy">
+    </iframe>
+  </div>
+
+  <script>
+    function loadMap() {
+      let query = document.getElementById("searchBox").value.trim();
+      let iframe = document.getElementById("mapFrame");
+      
+      if(query) {
+        iframe.src = "https://www.google.com/maps?q=" + encodeURIComponent(query) + "&output=embed";
+      } else {
+        alert("⚠️ Please type or speak a hospital/city name!");
+      }
+    }
+
+    // 🎤 Voice Search Function
+    function startVoiceSearch() {
+      if (!('webkitSpeechRecognition' in window)) {
+        alert("Your browser does not support Speech Recognition. Please use Google Chrome.");
+        return;
+      }
+
+      let recognition = new webkitSpeechRecognition();
+      recognition.lang = "en-IN";
+      recognition.interimResults = false;
+      recognition.maxAlternatives = 1;
+
+      recognition.start();
+
+      recognition.onresult = function(event) {
+        let speechResult = event.results[0][0].transcript;
+        document.getElementById("searchBox").value = speechResult;
+        loadMap(); // auto search after voice input
+      };
+
+      recognition.onerror = function(event) {
+        alert("Voice recognition error: " + event.error);
+      };
+    }
+  </script>
+
+</body>
+</html>

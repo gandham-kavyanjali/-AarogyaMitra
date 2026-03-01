@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Login | Tele Medicine Access</title>
+  <style>
+    body {
+      margin: 0;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: url('https://wallpapers.com/images/featured/medical-background-cjge7e89adg6ub8x.jpg') no-repeat center center/cover;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      backdrop-filter: brightness(0.6);
+    }
+
+    .login-container {
+      background: rgba(255, 255, 255, 0.95);
+      padding: 40px;
+      border-radius: 15px;
+      box-shadow: 0px 8px 20px rgba(0, 0, 0, 0.2);
+      width: 350px;
+      text-align: center;
+    }
+
+    h2 {
+      color: teal;
+      margin-bottom: 20px;
+    }
+
+    label {
+      display: block;
+      text-align: left;
+      margin-bottom: 6px;
+      font-weight: 600;
+      color: #333;
+    }
+
+    input {
+      width: 100%;
+      padding: 12px;
+      margin-bottom: 15px;
+      border: 1px solid #ccc;
+      border-radius: 8px;
+      font-size: 14px;
+    }
+
+    button {
+      width: 100%;
+      padding: 12px;
+      background: teal;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      font-size: 16px;
+      font-weight: bold;
+      cursor: pointer;
+      transition: 0.3s ease;
+    }
+
+    button:hover {
+      background: #006666;
+    }
+
+    .language-switcher {
+      position: absolute;
+      top: 15px;
+      right: 20px;
+    }
+
+    select {
+      padding: 5px;
+      border-radius: 6px;
+      border: 1px solid #ccc;
+      font-size: 14px;
+    }
+
+    .error {
+      color: red;
+      font-size: 13px;
+      margin-bottom: 10px;
+      display: none;
+    }
+
+    .signup-text {
+      margin-top: 15px;
+      font-size: 14px;
+    }
+
+    .signup-text a {
+      color: teal;
+      font-weight: bold;
+      text-decoration: none;
+    }
+
+    .signup-text a:hover {
+      text-decoration: underline;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Language Switcher -->
+  <div class="language-switcher">
+    <select id="languageSwitcher">
+      <option value="en">English</option>
+      <option value="hi">हिन्दी</option>
+      <option value="pa">ਪੰਜਾਬੀ</option>
+    </select>
+  </div>
+
+  <div class="login-container">
+    <h2 id="title">Login to Tele Medicine Access</h2>
+    <form id="loginForm">
+      <label for="email" id="emailLabel">Email</label>
+      <input type="email" id="email" placeholder="Enter your email" required>
+      
+      <label for="password" id="passwordLabel">Password</label>
+      <input type="password" id="password" placeholder="Enter your password" required>
+      
+      <p class="error" id="errorMsg">Please enter valid details.</p>
+      
+      <button type="submit" id="loginBtn">Login</button>
+    </form>
+
+    <p class="signup-text" id="signupText">
+      Don’t have an account? <a href="signup.html">Sign up</a>
+    </p>
+  </div>
+
+  <script>
+    // Translations
+    const translations = {
+      en: {
+        title: "Login to Tele Medicine Access",
+        emailLabel: "Email",
+        passwordLabel: "Password",
+        loginBtn: "Login",
+        errorMsg: "Please enter valid details.",
+        signupText: "Don’t have an account? <a href='signup.html'>Sign up</a>"
+      },
+      hi: {
+        title: "टेली मेडिसिन एक्सेस में लॉगिन करें",
+        emailLabel: "ईमेल",
+        passwordLabel: "पासवर्ड",
+        loginBtn: "लॉगिन",
+        errorMsg: "कृपया सही विवरण दर्ज करें।",
+        signupText: "क्या आपका खाता नहीं है? <a href='signup.html'>साइन अप करें</a>"
+      },
+      pa: {
+        title: "ਟੈਲੀ ਮੈਡੀਸਿਨ ਐਕਸੈਸ ਵਿੱਚ ਲੌਗਿਨ ਕਰੋ",
+        emailLabel: "ਈਮੇਲ",
+        passwordLabel: "ਪਾਸਵਰਡ",
+        loginBtn: "ਲੌਗਿਨ",
+        errorMsg: "ਕਿਰਪਾ ਕਰਕੇ ਸਹੀ ਵੇਰਵੇ ਦਰਜ ਕਰੋ।",
+        signupText: "ਕੀ ਤੁਹਾਡਾ ਖਾਤਾ ਨਹੀਂ ਹੈ? <a href='signup.html'>ਸਾਇਨ ਅਪ ਕਰੋ</a>"
+      }
+    };
+
+    // Handle language switching
+    const switcher = document.getElementById('languageSwitcher');
+    switcher.addEventListener('change', () => {
+      const lang = switcher.value;
+      document.getElementById('title').innerText = translations[lang].title;
+      document.getElementById('emailLabel').innerText = translations[lang].emailLabel;
+      document.getElementById('passwordLabel').innerText = translations[lang].passwordLabel;
+      document.getElementById('loginBtn').innerText = translations[lang].loginBtn;
+      document.getElementById('errorMsg').innerText = translations[lang].errorMsg;
+      document.getElementById('signupText').innerHTML = translations[lang].signupText;
+    });
+
+    // Basic validation
+    document.getElementById("loginForm").addEventListener("submit", function(e) {
+      e.preventDefault();
+      const email = document.getElementById("email").value;
+      const password = document.getElementById("password").value;
+      const errorMsg = document.getElementById("errorMsg");
+
+      if (!email.includes("@") || password.length < 4) {
+        errorMsg.style.display = "block";
+      } else {
+        errorMsg.style.display = "none";
+        window.location.href = "patient_dashboard.html"; // Redirect to dashboard
+      }
+    });
+  </script>
+</body>
+</html>

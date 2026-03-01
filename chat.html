@@ -1,0 +1,386 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Patient–Doctor Chat Support</title>
+  <style>
+  body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background: linear-gradient(135deg, #e0f7ff, #f0faff);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    margin: 0;
+  }
+
+  .chat-box {
+    width: 500px;
+    background: #ffffff;
+    border-radius: 20px;
+    box-shadow: 0 10px 30px rgba(0, 123, 255, 0.15);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+  }
+
+  .chat-header {
+    background: linear-gradient(135deg, #7dd3fc, #38bdf8);
+    color: #033e63;
+    padding: 16px;
+    text-align: center;
+    font-weight: 600;
+    font-size: 17px;
+  }
+
+  #doctorList button {
+    display: block;
+    width: 100%;
+    margin: 6px 0;
+    padding: 10px;
+    border-radius: 12px;
+    border: none;
+    font-size: 14px;
+    transition: all 0.2s ease;
+  }
+
+  #doctorList button:hover {
+    transform: scale(1.02);
+    box-shadow: 0 5px 12px rgba(0,0,0,0.15);
+  }
+
+  .chat-messages {
+    flex: 1;
+    padding: 16px;
+    overflow-y: auto;
+    background: #f8fcff;
+  }
+
+  .message {
+    margin-bottom: 12px;
+    padding: 12px 16px;
+    border-radius: 18px;
+    max-width: 80%;
+    font-size: 14px;
+    line-height: 1.5;
+    animation: fadeIn 0.25s ease;
+    word-wrap: break-word;
+  }
+
+  .patient {
+    background: #dbeafe;
+    color: #033e63;
+    align-self: flex-end;
+    border-bottom-right-radius: 6px;
+  }
+
+  .doctor {
+    background: #dcfce7;
+    color: #064e3b;
+    align-self: flex-start;
+    border-bottom-left-radius: 6px;
+  }
+
+  #typing {
+    padding: 6px 16px;
+    font-size: 13px;
+    color: #64748b;
+    font-style: italic;
+    display: none;
+  }
+
+  .controls {
+    display: flex;
+    justify-content: space-between;
+    padding: 10px;
+    background: #f1faff;
+    border-top: 1px solid #e0f2fe;
+  }
+
+  .controls button {
+    flex: 1;
+    margin: 0 4px;
+    padding: 8px;
+    border-radius: 10px;
+    border: none;
+    cursor: pointer;
+    font-size: 14px;
+    font-weight: 500;
+  }
+
+  .controls button:first-child {
+    background: #22c55e;
+    color: #ffffff;
+  }
+
+  .controls button:last-child {
+    background: #ef4444;
+    color: #ffffff;
+  }
+
+  .chat-input {
+    display: flex;
+    flex-direction: column;
+    padding: 10px;
+    background: #ffffff;
+    border-top: 1px solid #e0f2fe;
+  }
+
+  .chat-input-row {
+    display: flex;
+  }
+
+  .chat-input input {
+    flex: 1;
+    padding: 10px 14px;
+    border-radius: 14px;
+    border: 1px solid #bae6fd;
+    outline: none;
+    font-size: 14px;
+  }
+
+  .chat-input input:focus {
+    border-color: #38bdf8;
+  }
+
+  .chat-input button {
+    margin-left: 8px;
+    background: linear-gradient(135deg, #38bdf8, #0ea5e9);
+    color: #ffffff;
+    border: none;
+    padding: 10px 18px;
+    border-radius: 14px;
+    cursor: pointer;
+    font-weight: 600;
+  }
+
+  img.chat-image, audio.chat-audio {
+    max-width: 180px;
+    border-radius: 12px;
+    margin-top: 6px;
+  }
+
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(4px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+  </style>
+</head>
+<body>
+
+<div class="chat-box">
+  <div style="padding:10px; border-bottom:1px solid #ddd;">
+    <strong>Select Doctor</strong>
+    <div id="doctorList" style="margin-top:6px;"></div>
+  </div>
+  <div class="chat-header">
+    Doctor Chat Support <span id="status">(Offline)</span>
+  </div>
+
+  <div class="chat-messages" id="messages"></div>
+  <div id="typing">Doctor is typing...</div>
+
+  <div class="controls">
+    <button onclick="toggleDoctor()">Toggle Doctor Online / Offline</button>
+    <button onclick="clearChat()" style="background:#f44336; margin-left:6px;">Clear Previous Chat</button>
+  </div>
+
+  <div class="chat-input">
+    <div class="chat-input-row">
+      <input type="text" id="messageInput" placeholder="Type your message..." />
+      <button onclick="sendTextMessage()">Send</button>
+      <button id="recordBtn">🎤 Record</button>
+    </div>
+    <div style="margin-top:6px; display:flex; gap:6px; align-items:center;">
+      <input type="file" id="imageInput" accept="image/*" />
+    </div>
+  </div>
+</div>
+
+<script>
+const messages=document.getElementById('messages');
+let doctorOnline=false;
+let selectedDoctor=null;
+
+const doctors=[
+  { name: 'Dr. Rao (Physician)', online: true },
+  { name: 'Dr. Anjali (Gynecologist)', online: false },
+  { name: 'Dr. Kumar (Diabetologist)', online: true },
+  { name: 'Dr. Suresh (Cardiologist)', online: false }
+];
+
+const responses=[
+  {keywords:['dark circles','under eye','eye dark'], answers:[
+    'Dark circles under the eyes are often caused by lack of sleep or stress. (కళ్ల కింద నల్ల వలయాలు నిద్రలేమి లేదా ఒత్తిడి వల్ల వస్తాయి.)',
+    'Cold compress or cucumber slices may help lighten dark circles. (చల్లని కాంప్రెస్ లేదా కీరా ముక్కలు కళ్ల కింద నల్ల వలయాలను తగ్గించడంలో సహాయపడతాయి.)',
+    'Ensure proper hydration daily. (ప్రతిరోజూ తగినంత నీరు తాగడం ముఖ్యం.)',
+    'Get at least 7–8 hours of sleep. (ప్రతిరోజూ 7–8 గంటల నిద్ర అవసరం.)'
+  ]},
+  {keywords:['fever','temperature','high temp'], answers:[
+    'Fever may indicate an infection. Rest and drink plenty of fluids. (జ్వరం ఇన్ఫెక్షన్ సూచన కావచ్చు. విశ్రాంతి తీసుకోండి మరియు తగినంత ద్రవాలను తాగండి.)',
+    'Take paracetamol if temperature is high. (తాపం ఎక్కువగా ఉంటే పారాసిటమాల్ తీసుకోండి.)',
+    'Consult a doctor if fever persists for more than 2 days. (జ్వరం 2 రోజులు ఎక్కువ ఉంటే డాక్టర్‌ని సంప్రదించండి.)'
+  ]},
+  {keywords:['cough','cold','throat'], answers:[
+    'Drink warm fluids and honey for soothing the throat. (గోరువెచ్చని ద్రవాలు మరియు తేనె గొంతును సౌకర్యంగా చేస్తాయి.)',
+    'Avoid cold drinks and keep warm. (చల్లని పానీయాలను మానుకోండి మరియు వేడి ఉంచుకోండి.)',
+    'Consult a doctor if cough persists more than a week. (ఖచ్చితంగా 1 వారం కంటే ఎక్కువ దగ్గు ఉంటే డాక్టర్‌ను సంప్రదించండి.)'
+  ]}
+];
+
+const history=JSON.parse(localStorage.getItem('chatHistory'))||[];
+history.forEach(m=>addMessage(m.sender,m.text,m.isAudio||m.isImage));
+
+function addMessage(sender,text,isAudio=false,isImage=false){
+  const div=document.createElement('div');
+  div.className='message '+sender;
+  if(isAudio){
+    const audio=document.createElement('audio');
+    audio.src=text;
+    audio.controls=true;
+    audio.className='chat-audio';
+    div.appendChild(audio);
+  } else if(isImage){
+    const img=document.createElement('img');
+    img.src=text;
+    img.className='chat-image';
+    div.appendChild(img);
+  } else div.innerText=text;
+  messages.appendChild(div);
+  messages.scrollTop=messages.scrollHeight;
+}
+
+function saveMessage(sender,text,isAudio=false,isImage=false){
+  const history=JSON.parse(localStorage.getItem('chatHistory'))||[];
+  history.push({sender,text,isAudio,isImage});
+  localStorage.setItem('chatHistory',JSON.stringify(history));
+}
+
+function renderDoctors(){
+  const list=document.getElementById('doctorList');
+  list.innerHTML='';
+  doctors.forEach((doc,i)=>{
+    const btn=document.createElement('button');
+    btn.innerText=doc.name+(doc.online?' (Online)':' (Offline)');
+    btn.style.background=doc.online?'#4caf50':'#ccc';
+    btn.style.color='#fff';
+    btn.style.cursor=doc.online?'pointer':'not-allowed';
+    if(doc.online) btn.onclick=()=>selectDoctor(i);
+    list.appendChild(btn);
+  });
+}
+
+function selectDoctor(index){
+  selectedDoctor=doctors[index];
+  doctorOnline=true;
+  document.getElementById('status').innerText='(Chatting with '+selectedDoctor.name+')';
+  messages.innerHTML='';
+  localStorage.removeItem('chatHistory');
+  addMessage('doctor','Hello, I am '+selectedDoctor.name+'. How can I help you?');
+  notifyUser(selectedDoctor.name+' is now online.');
+}
+
+function sendTextMessage(){
+  const input=document.getElementById('messageInput');
+  const text=input.value.trim();
+  if(text==='') return;
+  addMessage('patient',text);
+  saveMessage('patient',text);
+  input.value='';
+  sendTextToDoctor(text);
+}
+
+function sendTextToDoctor(text){
+  if(!selectedDoctor) return;
+  const typing=document.getElementById('typing');
+  typing.style.display='block';
+
+  setTimeout(()=>{
+    typing.style.display='none';
+    let reply='I understand your concern. Could you please provide more details about your symptoms?';
+    const q=text.toLowerCase();
+    for(let item of responses){
+      for(let word of item.keywords){
+        if(q.includes(word)){
+          const arr=item.answers;
+          reply=arr[Math.floor(Math.random()*arr.length)];
+          break;
+        }
+      }
+    }
+    addMessage('doctor',reply);
+    saveMessage('doctor',reply);
+    playNotificationSound();
+  },1200);
+}
+
+function clearChat(){
+  if(!confirm('Clear previous chat history?')) return;
+  localStorage.removeItem('chatHistory');
+  messages.innerHTML='';
+}
+
+function notifyUser(message){
+  if(Notification.permission==='granted'){
+    new Notification(message);
+  } else if(Notification.permission!=='denied'){
+    Notification.requestPermission().then(permission=>{
+      if(permission==='granted') new Notification(message);
+    });
+  }
+}
+
+function playNotificationSound(){
+  const audio=new Audio('https://www.soundjay.com/button/beep-07.wav');
+  audio.play();
+}
+
+// Corrected voice recording & speech-to-text
+let mediaRecorder, audioChunks=[];
+const recordBtn=document.getElementById('recordBtn');
+recordBtn.addEventListener('click', async () => {
+  if (!mediaRecorder || mediaRecorder.state === 'inactive') {
+    const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+    mediaRecorder = new MediaRecorder(stream);
+    audioChunks = [];
+
+    mediaRecorder.ondataavailable = e => audioChunks.push(e.data);
+
+    mediaRecorder.onstop = () => {
+      const blob = new Blob(audioChunks, { type: 'audio/mp3' });
+      const audioUrl = URL.createObjectURL(blob);
+      addMessage('patient', audioUrl, true);
+      saveMessage('patient', audioUrl, true);
+    };
+
+    // Start speech recognition live
+    if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
+      const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+      const recognition = new SpeechRecognition();
+      recognition.lang = 'en-US';
+      recognition.interimResults = false;
+
+      recognition.onresult = event => {
+        const transcript = event.results[0][0].transcript;
+        saveMessage('patient', transcript);
+        sendTextToDoctor(transcript);
+      };
+
+      recognition.onerror = err => console.log('Speech recognition error:', err);
+      recognition.start();
+    } else {
+      alert('Speech recognition not supported in this browser.');
+    }
+
+    mediaRecorder.start();
+    recordBtn.innerText = '⏹ Stop';
+  } else if (mediaRecorder.state === 'recording') {
+    mediaRecorder.stop();
+    recordBtn.innerText = '🎤 Record';
+  }
+});
+
+renderDoctors();
+</script>
+</body>
+</html>
